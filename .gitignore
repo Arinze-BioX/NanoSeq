@@ -1,4 +1,4 @@
 bugfix-scratch/
 *.sif
-notes/
-.vscode/
+*.log
+.snakemake/
