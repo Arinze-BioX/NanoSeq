@@ -23,9 +23,9 @@ singularity pull docker://arinzeokafor/nanoseq:1.0.2
 Of course, this would require locally installing whatever software is being used to pull the image and run the container. I used singularity=3.9.8.
 
 3. Modify the pipeline as follows:
-    a. modify the snakemake_pipeline/config_file.yaml file to ensure the variables point to the correct directories in your local system
-    b. modify the snakemake_pipeline/slurm_singularity/config.yaml file according to the job scheduler you intend to use for parallel processing. Also install the necessary snakemake plug-ins to parallelize the pipeline or run on hpc. I used slurm.
-    c. modify the snakemake_pipeline/samples.json file to include your desired input file paths.
+  1. modify the snakemake_pipeline/config_file.yaml file to ensure the variables point to the correct directories in your local system
+  2. modify the snakemake_pipeline/slurm_singularity/config.yaml file according to the job scheduler you intend to use for parallel processing. Also install the necessary snakemake plug-ins to parallelize the pipeline or run on hpc. I used slurm.
+  3. modify the snakemake_pipeline/samples.json file to include your desired input file paths.
 4. Run the run_snake.sh (after making it executable) file from within the cloned parent NanoSeq directory.
 
 
