@@ -1,0 +1,38 @@
+{
+    "BT474_D03_Tam_1": {
+        "R1":["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000012/01.RawData/BT474_D03_Tam_1/BT474_D03_Tam_1_CKDL250001407-1A_22MFVHLT4_L2_1.fq.gz"],
+        "R2":["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000012/01.RawData/BT474_D03_Tam_1/BT474_D03_Tam_1_CKDL250001407-1A_22MFVHLT4_L2_2.fq.gz"],
+        "matched_R1":["/gpfs/home/okafoa01/udseq_nanoseq_pipeline_032025/data/combined_study12_matchedNorm_1.fq.gz"],
+        "matched_R2":["/gpfs/home/okafoa01/udseq_nanoseq_pipeline_032025/data/combined_study12_matchedNorm_2.fq.gz"]
+    },
+    "BT474_D03_Tam_2": {
+        "R1":["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000012/01.RawData/BT474_D03_Tam_2/BT474_D03_Tam_2_CKDL250001407-1A_22MFVHLT4_L2_1.fq.gz"],
+        "R2":["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000012/01.RawData/BT474_D03_Tam_2/BT474_D03_Tam_2_CKDL250001407-1A_22MFVHLT4_L2_2.fq.gz"],
+        "matched_R1":["/gpfs/home/okafoa01/udseq_nanoseq_pipeline_032025/data/combined_study12_matchedNorm_1.fq.gz"],
+        "matched_R2":["/gpfs/home/okafoa01/udseq_nanoseq_pipeline_032025/data/combined_study12_matchedNorm_2.fq.gz"]
+    },
+    "BT474_D03_Epi_1": {
+        "R1":["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000012/01.RawData/BT474_D03_Epi_1/BT474_D03_Epi_1_CKDL250001407-1A_22MFVHLT4_L2_1.fq.gz"],
+        "R2":["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000012/01.RawData/BT474_D03_Epi_1/BT474_D03_Epi_1_CKDL250001407-1A_22MFVHLT4_L2_2.fq.gz"],
+        "matched_R1":["/gpfs/home/okafoa01/udseq_nanoseq_pipeline_032025/data/combined_study12_matchedNorm_1.fq.gz"],
+        "matched_R2":["/gpfs/home/okafoa01/udseq_nanoseq_pipeline_032025/data/combined_study12_matchedNorm_2.fq.gz"]
+    },
+    "BT474_D03_Epi_2": {
+        "R1":["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000012/01.RawData/BT474_D03_Epi_2/BT474_D03_Epi_2_CKDL250001407-1A_22MFVHLT4_L2_1.fq.gz"],
+        "R2":["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000012/01.RawData/BT474_D03_Epi_2/BT474_D03_Epi_2_CKDL250001407-1A_22MFVHLT4_L2_2.fq.gz"],
+        "matched_R1":["/gpfs/home/okafoa01/udseq_nanoseq_pipeline_032025/data/combined_study12_matchedNorm_1.fq.gz"],
+        "matched_R2":["/gpfs/home/okafoa01/udseq_nanoseq_pipeline_032025/data/combined_study12_matchedNorm_2.fq.gz"]
+    },
+    "BT474_D03_Veh_1": {
+        "R1":["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000012/01.RawData/BT474_D03_Veh_1/BT474_D03_Veh_1_CKDL250001407-1A_22MFVHLT4_L2_1.fq.gz"],
+        "R2":["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000012/01.RawData/BT474_D03_Veh_1/BT474_D03_Veh_1_CKDL250001407-1A_22MFVHLT4_L2_2.fq.gz"],
+        "matched_R1":["/gpfs/home/okafoa01/udseq_nanoseq_pipeline_032025/data/combined_study12_matchedNorm_1.fq.gz"],
+        "matched_R2":["/gpfs/home/okafoa01/udseq_nanoseq_pipeline_032025/data/combined_study12_matchedNorm_2.fq.gz"]
+    },
+    "BT474_D03_Veh_2": {
+        "R1":["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000012/01.RawData/BT474_D03_Veh_2/BT474_D03_Veh_2_CKDL250001407-1A_22MFVHLT4_L2_1.fq.gz"],
+        "R2":["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000012/01.RawData/BT474_D03_Veh_2/BT474_D03_Veh_2_CKDL250001407-1A_22MFVHLT4_L2_2.fq.gz"],
+        "matched_R1":["/gpfs/home/okafoa01/udseq_nanoseq_pipeline_032025/data/combined_study12_matchedNorm_1.fq.gz"],
+        "matched_R2":["/gpfs/home/okafoa01/udseq_nanoseq_pipeline_032025/data/combined_study12_matchedNorm_2.fq.gz"]
+    }
+}
