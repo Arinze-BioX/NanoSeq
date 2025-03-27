@@ -7,9 +7,9 @@ Nanorate sequencing (NanoSeq) is a DNA library preparation and sequencing protoc
 This repository was forked from https://github.com/cancerit/NanoSeq and modified (see committed changes).
 
 ### Dependencies
-singularity=3.9.8
-snakemake=9.1.1
-snakemake-executor-plugin-slurm=1.1.0
+- singularity=3.9.8
+- snakemake=9.1.1
+- snakemake-executor-plugin-slurm=1.1.0
 
 ### Usage
 This pipeline can be used from the already created container image, by:
@@ -21,9 +21,10 @@ cd NanoSeq
 singularity pull docker://arinzeokafor/nanoseq:1.0.2
 ```
 Of course, this would require locally installing whatever software is being used to pull the image and run the container. I used singularity=3.9.8.
+
 3. Modify the pipeline as follows:
     a. modify the snakemake_pipeline/config_file.yaml file to ensure the variables point to the correct directories in your local system
-    b. modify the snakemake_pipeline/slurm_singularity/config.yaml file according to the job scheduler you intend to use for parallel processing. I used slurm.
+    b. modify the snakemake_pipeline/slurm_singularity/config.yaml file according to the job scheduler you intend to use for parallel processing. Also install the necessary snakemake plug-ins to parallelize the pipeline or run on hpc. I used slurm.
     c. modify the snakemake_pipeline/samples.json file to include your desired input file paths.
 4. Run the run_snake.sh (after making it executable) file from within the cloned parent NanoSeq directory.
 
