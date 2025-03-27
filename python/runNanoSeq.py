@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!~/miniforge3/bin/python3
 
 ########## LICENCE ##########
 # Copyright (c) 2022 Genome Research Ltd

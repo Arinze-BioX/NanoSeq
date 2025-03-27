@@ -203,20 +203,6 @@ else
   touch $SETUP_DIR/verifyBAMID.success
 fi
 
-echo -n "Installing R libraries..."
-mkdir -p $R_LIBS
-if [ -e $SETUP_DIR/Rlib.success ]; then
-  echo " previously installed ...";
-else
-  echo
-  export R_LIBS=$INST_PATH/R-lib
-  export R_LIBS_USER=$INST_PATH/R-lib
-  mkdir -p $R_LIBS_USER
-  Rscript $INIT_DIR/build/libInstall.R $R_LIBS_USER
-  cd $SETUP_DIR
-  touch $SETUP_DIR/Rlib.success
-fi
-
 echo -n "Building gzstream ..."
 if [ -e $SETUP_DIR/gzstream.success ]; then
   echo " previously built ...";
