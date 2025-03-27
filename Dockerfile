@@ -27,17 +27,6 @@ RUN apt-get install -yq --no-install-recommends pkg-config
 
 # if ubuntu 18.04
 RUN apt install -yq --no-install-recommends dirmngr
-RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
-RUN add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
-RUN apt-get install -yq --no-install-recommends r-base-core=4.1.3-1.1804.0
-RUN apt-mark hold r-base-core
-RUN apt-get install -yq --no-install-recommends r-cran-mass=7.3-51.5-2bionic0 r-cran-class=7.3-16-1bionic0 r-cran-nnet=7.3-13-1bionic0
-RUN apt-get install -yq --no-install-recommends r-recommended=4.1.3-1.1804.0
-RUN apt-get install -yq --no-install-recommends r-base=4.1.3-1.1804.0
-RUN apt-mark hold r-base r-recommended
-# if ubuntu 22.04
-# RUN apt-get install -yq --no-install-recommends r-base=4.1.2-1ubuntu2
-
 RUN apt-get install -yq --no-install-recommends zlib1g-dev
 RUN apt-get install -yq --no-install-recommends libbz2-dev
 RUN apt-get install -yq --no-install-recommends liblzma-dev
@@ -58,14 +47,11 @@ RUN update-locale LANG=en_US.UTF-8
 
 ENV OPT /opt/wtsi-cgp
 ENV PATH $OPT/bin:$PATH
-ENV R_LIBS $OPT/R-lib
-ENV R_LIBS_USER $R_LIBS
 ENV LD_LIBRARY_PATH $OPT/lib
 ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
 
 # build tools from other repos
-ADD build/libInstall.R build/
 ADD build/opt-build.sh build/
 RUN bash build/opt-build.sh $OPT
 
@@ -75,10 +61,9 @@ RUN bash build/opt-build-local.sh $OPT
 
 FROM ubuntu:18.04
 
-LABEL maintainer="cgphelp@sanger.ac.uk" \
-      uk.ac.sanger.cgp="Cancer, Ageing and Somatic Mutation, Wellcome Trust Sanger Institute" \
+LABEL maintainer="okafor.ae@gmail.com" \
       version="1.0.1" \
-      description="nanoseq docker"
+      description="nanorateseq docker"
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get -yq update
@@ -97,7 +82,6 @@ ca-certificates \
 time \
 zlib1g \
 libz-dev \
-python3 \
 libxml2 \
 libgsl23 \
 libperl5.26 \
@@ -111,24 +95,12 @@ apt-get remove -yq unattended-upgrades && \
 apt-get autoremove -yq
 
 RUN apt install -yq --no-install-recommends software-properties-common dirmngr
-RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
-RUN add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
-RUN apt-get install -yq --no-install-recommends r-base-core=4.1.3-1.1804.0
-RUN apt-mark hold r-base-core
-RUN apt-get install -yq --no-install-recommends r-cran-mass=7.3-51.5-2bionic0 r-cran-class=7.3-16-1bionic0 r-cran-nnet=7.3-13-1bionic0
-RUN apt-get install -yq --no-install-recommends r-recommended=4.1.3-1.1804.0
-RUN apt-get install -yq --no-install-recommends r-base=4.1.3-1.1804.0
-RUN apt-mark hold r-base r-recommended
-ADD build/libInstall2.R build/
-RUN Rscript build/libInstall2.R
 
 RUN locale-gen en_US.UTF-8
 RUN update-locale LANG=en_US.UTF-8
 
 ENV OPT /opt/wtsi-cgp
 ENV PATH $OPT/bin:$PATH
-ENV R_LIBS $OPT/R-lib
-ENV R_LIBS_USER $R_LIBS
 ENV LD_LIBRARY_PATH $OPT/lib
 ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
@@ -142,4 +114,24 @@ RUN adduser --disabled-password --gecos '' ubuntu && chsh -s /bin/bash && mkdir 
 USER    ubuntu
 WORKDIR /home/ubuntu
 
-CMD ["/bin/bash"]
+# install miniforge
+ENV HOME /home/ubuntu
+ENV PATH /home/ubuntu/miniforge3/bin:${PATH}
+ENV CONDA_DIR $HOME/miniforge3
+RUN wget https://github.com/conda-forge/miniforge/releases/download/24.11.3-2/Miniforge3-24.11.3-2-Linux-$(uname -m).sh
+RUN bash Miniforge3-24.11.3-2-Linux-$(uname -m).sh -b -p $(pwd)/miniforge3
+RUN rm Miniforge3-24.11.3-2-Linux-$(uname -m).sh
+
+# initialize conda and install mamba
+RUN $HOME/miniforge3/bin/conda init
+SHELL ["/bin/bash", "-i", "-c"] 
+RUN conda config --add channels bioconda
+RUN conda config --add channels conda-forge
+RUN conda install -y mamba=2.0.7
+
+# Install other packages from conda using mamba
+RUN mamba install -y -c conda-forge -y r-base=4.3.3 r-epitools=0.5_10.1 r-ggplot2=3.5.1 r-data.table=1.17.0 r-gridextra=2.3
+RUN mamba install -c bioconda -y bioconductor-deepsnv=1.48.0 r-vcfr=1.15.0 r-seqinr=4.2_36 snakemake=9.1.1 snakemake-executor-plugin-slurm bwa=0.7.19 biobambam=2.0.185
+RUN mamba install -y r::r-vgam=1.1_9
+
+CMD ["/bin/bash", "-i"]
