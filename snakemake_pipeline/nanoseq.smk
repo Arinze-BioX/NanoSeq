@@ -76,7 +76,7 @@ rule add_rc_mc_tags:
     log: "{WORKING_FOLDER}/00_log/{sample}.bamsormadup"
     shell: """
     singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {NORM_FOLDER} \
-    --env "PATH=/home/ubuntu/miniforge3/bin:${{PATH}}" nanoseq_1.0.2.sif /bin/bash -c "bamsormadup inputformat=sam rcsupport=1 threads=1 < {inout} > {output}"
+    --env "PATH=/home/ubuntu/miniforge3/bin:${{PATH}}" nanoseq_1.0.2.sif /bin/bash -c "bamsormadup inputformat=sam rcsupport=1 threads=1 < {input} > {output}"
     """
 
 rule append_rb_tag_filter:
