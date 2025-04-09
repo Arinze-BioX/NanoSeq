@@ -1,7 +1,7 @@
 BWA_INDEX: /gpfs/data/petljaklab/resources/hg38/pipeline_resources/genome/bwa/hg38.fa
 SAMPLES_JSON: 'snakemake_pipeline/samples.json'
-FASTQ_FOLDER: '/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000012/01.RawData'
-WORKING_FOLDER: '/gpfs/data/petljaklab/data/nanoseq'
+FASTQ_FOLDER: '/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000013/01.RawData'
+WORKING_FOLDER: '/gpfs/data/petljaklab/data/nanoseq_optimize_IP/data'
 NORM_FOLDER: '/gpfs/home/okafoa01/udseq_nanoseq_pipeline_032025/data'
-PYTHON_FOLDER: '/gpfs/data/petljaklab/arinze/Nanoseq/python'
+PYTHON_FOLDER: '/gpfs/data/petljaklab/data/nanoseq_optimize_IP/Nanoseq_code/python'
 BWA_FOLDER: /gpfs/data/petljaklab/resources/hg38/pipeline_resources/genome/bwa

@@ -42,7 +42,7 @@ rule extract_tags:
     log: "{WORKING_FOLDER}/00_log/{sample}_stdOut.extractTags","{WORKING_FOLDER}/00_log/{sample}_error.extractTags"
     shell: """
     singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {NORM_FOLDER} -B {PYTHON_FOLDER} \
-    --env "PATH=/home/ubuntu/miniforge3/bin:${{PATH}}" nanoseq_1.0.2.sif /bin/bash -c "python python/extract_tags.py -a {input[0]} -b {input[1]} -c {output[0]} -d {output[1]} -m 3 -s 2 -l 150 1> {log[0]} 2> {log[1]}"
+    --env "PATH=/home/ubuntu/miniforge3/bin:${{PATH}}" nanoseq_1.0.2.sif /bin/bash -c "python {PYTHON_FOLDER}/extract_tags.py -a {input[0]} -b {input[1]} -c {output[0]} -d {output[1]} -m 3 -s 2 -l 150 1> {log[0]} 2> {log[1]}"
 """
 
 rule align_tumor:
@@ -83,13 +83,26 @@ rule add_rc_mc_tags:
     message: "append rc & mc tags"
     log: "{WORKING_FOLDER}/00_log/{sample}.bamsormadup"
     shell: """
-    mkdir -p /tmp/arinze
-    singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {NORM_FOLDER} -B /tmp/arinze/ \
-    --env "PATH=/home/ubuntu/miniforge3/bin:${{PATH}}" nanoseq_1.0.2.sif /bin/bash -c "bamsormadup tmpfile=/tmp/arinze/ inputformat=sam rcsupport=1 threads=8 < {input} > {output}"
+    mkdir -p {WORKING_FOLDER}/tmp_{wildcards.sample}_rcmc
+    singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {NORM_FOLDER} \
+    --env "PATH=/home/ubuntu/miniforge3/bin:${{PATH}}" nanoseq_1.0.2.sif /bin/bash -c "bamsormadup tmpfile={WORKING_FOLDER}/tmp_{wildcards.sample}_rcmc inputformat=sam rcsupport=1 threads=8 < {input} > {output}"
+    rm -rf {WORKING_FOLDER}/tmp_{wildcards.sample}_rcmc
+    """
+
+rule mark_duplicates:
+    input:  "{WORKING_FOLDER}/data/align/{sample}_od.bam"
+    output: "{WORKING_FOLDER}/data/filtered/{sample}_dupped.bam"
+    threads: 8
+    log: "{WORKING_FOLDER}/00_log/{sample}.markdups"
+    shell: """
+    mkdir -p {WORKING_FOLDER}/tmp_{wildcards.sample}_dups
+    singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {NORM_FOLDER} \
+    --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.0.2.sif /bin/bash -c "bammarkduplicatesopt I={input} O={output} M={log} tmpfile={WORKING_FOLDER}/tmp_{wildcards.sample}_dups"
+    rm -rf {WORKING_FOLDER}/tmp_{wildcards.sample}_dups
     """
 
 rule append_rb_tag_filter:
-    input:  "{WORKING_FOLDER}/data/align/{sample}_od.bam"
+    input:  "{WORKING_FOLDER}/data/filtered/{sample}_dupped.bam"
     output: "{WORKING_FOLDER}/data/filtered/{sample}.bam"
     threads: 8
     log: "{WORKING_FOLDER}/00_log/{sample}.bamaddreadbundles"
@@ -126,58 +139,59 @@ rule nanoseq_cov:
     message: "Nanoseq_coverage"
     log: "{WORKING_FOLDER}/00_log/{sample}.nanoseq_cov"
     shell: """
-    singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {NORM_FOLDER} -B {PYTHON_FOLDER} \
-    --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.0.2.sif /bin/bash -c "python {PYTHON_FOLDER}/runNanoSeq.py -t 10 -A {input[0]} -B {input[1]} -R {BWA_INDEX} cov -Q 0 --exclude "MT,GL%,NC_%,hs37d5" 2>{log}"
+    mkdir {WORKING_FOLDER}/{wildcards.sample}
+    singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {NORM_FOLDER} -B {PYTHON_FOLDER} -B {BWA_FOLDER} \
+    --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.0.2.sif /bin/bash -c "python {PYTHON_FOLDER}/runNanoSeq.py --out {WORKING_FOLDER}/{wildcards.sample} -t 10 -A {input[0]} -B {input[1]} -R {BWA_INDEX} cov -Q 0 --exclude "MT,GL%%,NC_%,hs37d5" 2>{log}"
     """
 
 rule nanoseq_partition:
-    input:  "{WORKING_FOLDER}/data/align_norm/{sample}.bam", "{WORKING_FOLDER}/data/filtered/{sample}.bam",
+    input:  "{WORKING_FOLDER}/data/align_norm/{sample}.bam", "{WORKING_FOLDER}/data/filtered/{sample}.bam","{WORKING_FOLDER}/{sample}_nanoseq_cov.txt",
             "{WORKING_FOLDER}/data/align_norm/{sample}.bam.bai", "{WORKING_FOLDER}/data/filtered/{sample}.bam.bai"
     output: touch("{WORKING_FOLDER}/{sample}_nanoseq_part.txt")
     threads: 10
     message: "Nanoseq_partition"
     log: "{WORKING_FOLDER}/00_log/{sample}.nanoseq_partition"
     shell: """
-    singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {NORM_FOLDER} -B {PYTHON_FOLDER} \
-    --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.0.2.sif /bin/bash -c "python {PYTHON_FOLDER}/runNanoSeq.py -t 1 -A {input[0]} -B {input[1]} -R {BWA_INDEX} part -n 10 2>{log}"
+    singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {NORM_FOLDER} -B {PYTHON_FOLDER} -B {BWA_FOLDER} \
+    --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.0.2.sif /bin/bash -c "python {PYTHON_FOLDER}/runNanoSeq.py --out {WORKING_FOLDER}/{wildcards.sample} -t 1 -A {input[0]} -B {input[1]} -R {BWA_INDEX} part -n 10 2>{log}"
     """
 
 rule nanoseq_dsa:
-    input:  "{WORKING_FOLDER}/data/align_norm/{sample}.bam", "{WORKING_FOLDER}/data/filtered/{sample}.bam",
+    input:  "{WORKING_FOLDER}/data/align_norm/{sample}.bam", "{WORKING_FOLDER}/data/filtered/{sample}.bam", "{WORKING_FOLDER}/{sample}_nanoseq_part.txt",
             "{WORKING_FOLDER}/data/align_norm/{sample}.bam.bai", "{WORKING_FOLDER}/data/filtered/{sample}.bam.bai"
     output: touch("{WORKING_FOLDER}/{sample}_nanoseq_dsa.txt")
     threads: 10
     message: "Nanoseq_dsa"
     log: "{WORKING_FOLDER}/00_log/{sample}.nanoseq_dsa"
     shell: """
-    singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {NORM_FOLDER} -B {PYTHON_FOLDER} \
-    --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.0.2.sif /bin/bash -c "python {PYTHON_FOLDER}/runNanoSeq.py -t 10 -A {input[0]} -B {input[1]} -R {BWA_INDEX} dsa -C SNP.sorted.bed.gz -D NOISE.sorted.bed.gz -d 2 -q 30 2>{log}"
+    singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {NORM_FOLDER} -B {PYTHON_FOLDER} -B {BWA_FOLDER} \
+    --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.0.2.sif /bin/bash -c "python {PYTHON_FOLDER}/runNanoSeq.py --out {WORKING_FOLDER}/{wildcards.sample} -t 10 -A {input[0]} -B {input[1]} -R {BWA_INDEX} dsa -C SNP.sorted.bed.gz -D NOISE.sorted.bed.gz -d 2 -q 30 2>{log}"
     """
 
 rule nanoseq_var:
-    input:  "{WORKING_FOLDER}/data/align_norm/{sample}.bam", "{WORKING_FOLDER}/data/filtered/{sample}.bam",
+    input:  "{WORKING_FOLDER}/data/align_norm/{sample}.bam", "{WORKING_FOLDER}/data/filtered/{sample}.bam", "{WORKING_FOLDER}/{sample}_nanoseq_dsa.txt",
             "{WORKING_FOLDER}/data/align_norm/{sample}.bam.bai", "{WORKING_FOLDER}/data/filtered/{sample}.bam.bai"
     output: touch("{WORKING_FOLDER}/{sample}_nanoseq_var.txt")
     threads: 10
     message: "Nanoseq_var"
     log: "{WORKING_FOLDER}/00_log/{sample}.nanoseq_var"
     shell: """
-    singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {NORM_FOLDER} -B {PYTHON_FOLDER} \
-    --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.0.2.sif /bin/bash -c "python {PYTHON_FOLDER}/runNanoSeq.py -t 60 -A {input[0]} -B {input[1]} -R {BWA_INDEX} var \
+    singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {NORM_FOLDER} -B {PYTHON_FOLDER} -B {BWA_FOLDER} \
+    --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.0.2.sif /bin/bash -c "python {PYTHON_FOLDER}/runNanoSeq.py --out {WORKING_FOLDER}/{wildcards.sample} -t 60 -A {input[0]} -B {input[1]} -R {BWA_INDEX} var \
     -a 50 -b 5 -c 0 -f 0.9 -i 1 -m 8 -n 3 -p 0 -q 60 -r 144 -v 0.01 -x 8 -z 12"
     """
 
 rule nanoseq_indel:
-    input:  "{WORKING_FOLDER}/data/align_norm/{sample}.bam", "{WORKING_FOLDER}/data/filtered/{sample}.bam",
+    input:  "{WORKING_FOLDER}/data/align_norm/{sample}.bam", "{WORKING_FOLDER}/data/filtered/{sample}.bam", "{WORKING_FOLDER}/{sample}_nanoseq_dsa.txt",
             "{WORKING_FOLDER}/data/align_norm/{sample}.bam.bai", "{WORKING_FOLDER}/data/filtered/{sample}.bam.bai"
     output: touch("{WORKING_FOLDER}/{sample}_nanoseq_indel.txt")
     threads: 10
     message: "Nanoseq_indel"
     log: "{WORKING_FOLDER}/00_log/{sample}.nanoseq_indel"
     shell: """
-    singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {NORM_FOLDER} -B {PYTHON_FOLDER} \
-    --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.0.2.sif /bin/bash -c "python {PYTHON_FOLDER}/runNanoSeq.py -t 60 -A {input[0]} -B {input[1]} -R {BWA_INDEX} indel -s sample \
-  --rb 2 --t3 135 --t5 10 --mc 16 2>{log}"
+    singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {NORM_FOLDER} -B {PYTHON_FOLDER} -B {BWA_FOLDER} \
+    --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.0.2.sif /bin/bash -c "python {PYTHON_FOLDER}/runNanoSeq.py --out {WORKING_FOLDER}/{wildcards.sample} -t 60 -A {input[0]} -B {input[1]} -R {BWA_INDEX} indel -s {wildcards.sample} \
+  --rb 2 --t3 140 --t5 5 2>{log}"
     """
 
 rule nanoseq_post:
@@ -190,6 +204,6 @@ rule nanoseq_post:
     message: "Nanoseq_post"
     log: "{WORKING_FOLDER}/00_log/{sample}.nanoseq_post"
     shell: """
-    singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {NORM_FOLDER} -B {PYTHON_FOLDER} \
-    --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.0.2.sif /bin/bash -c "python {PYTHON_FOLDER}/runNanoSeq.py -t 2 -A {input[0]} -B {input[1]} -R {BWA_INDEX} post 2>{log}"
+    singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {NORM_FOLDER} -B {PYTHON_FOLDER} -B {BWA_FOLDER} \
+    --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.0.2.sif /bin/bash -c "python {PYTHON_FOLDER}/runNanoSeq.py --out {WORKING_FOLDER}/{wildcards.sample} -t 2 -A {input[0]} -B {input[1]} -R {BWA_INDEX} post 2>{log}"
     """
