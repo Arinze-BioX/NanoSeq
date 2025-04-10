@@ -2,3 +2,5 @@ bugfix-scratch/
 *.sif
 *.log
 .snakemake/
+*.RBs*
+*.tsv

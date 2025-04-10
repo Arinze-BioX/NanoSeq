@@ -1,4 +1,4 @@
 #!/bin/bash
 
 
-snakemake -p -s snakemake_pipeline/nanoseq.smk --forceall --rulegraph | dot -Tpdf > snakemake_pipeline/dag.pdf
+snakemake -p -s snakemake_pipeline/nanoseq.smk --forceall --rulegraph | dot -Tpng > snakemake_pipeline/dag.png

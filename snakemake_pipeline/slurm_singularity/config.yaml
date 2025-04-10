@@ -2,10 +2,9 @@ executor: slurm
 max-jobs-per-second: 10
 max-status-checks-per-second: 1
 latency-wait: 5
-cores: 10
+cores: 8
 jobs: 99  # Adjust as needed
 default-resources:
-    slurm_account: "system"
-    slurm_partition: "fn_long"
-    mem_mb: 32000 # take a sensible default for your cluster
+    slurm_partition: "petljaklab"
+    mem_mb: 12000 # take a sensible default for your cluster
     runtime: "120h"

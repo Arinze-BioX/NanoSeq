@@ -705,7 +705,7 @@ if (args.subcommand == 'part'):
             with open("%s/part/%s" % (tmpDir, 'exclude.bed'), 'w') as iofile:
                 for ii in xIntervals:
                     iofile.write("%s\t%s\t%s\n" % (ii.chr, ii.beg-1, ii.end))
-            cmd = "bgzip -f %s/part/%s; sleep 3; bgzip -t %s/part/%s; tabix %s/part/%s" % (
+            cmd = "bgzip -f %s/part/%s; /bin/sleep 3; bgzip -t %s/part/%s; tabix %s/part/%s" % (
                 tmpDir, 'exclude.bed', tmpDir, 'exclude.bed.gz', tmpDir, 'exclude.bed.gz')
             runCommand(cmd)
 
@@ -866,7 +866,7 @@ if (args.subcommand == 'dsa'):
                    dsaInt.chr, dsaInt.beg, dsaInt.end, pipe, "%s/dsa/%s.dsa.bed" % (tmpDir, i + 1))
         # check number of fields in the last line it has to have 45 fields
         cmd += "awk  \'END{  if (NF != 45)  print \"Truncated dsa output file for job %s !\" > \"/dev/stderr\"}{ if (NF != 45) exit 1 }\' %s/dsa/%s.dsa.bed;" % (i+1, tmpDir, i+1)
-        cmd += "bgzip -f -l 2 %s/dsa/%s.dsa.bed; sleep 2; bgzip -t %s/dsa/%s.dsa.bed.gz;" % (
+        cmd += "bgzip -f -l 2 %s/dsa/%s.dsa.bed; /bin/sleep 2; bgzip -t %s/dsa/%s.dsa.bed.gz;" % (
             tmpDir, i+1, tmpDir, i+1)
         cmd += "touch %s/dsa/%s.done" % (tmpDir, i+1)
         if ( len(intervalsPerCPU[i]) == 0 ) : cmd = "touch %s/dsa/%s.dsa.bed.gz;touch %s/dsa/%s.done" % (tmpDir, i+1,tmpDir, i+1)
@@ -1166,7 +1166,7 @@ if (args.subcommand == 'post'):
             ifile = "%s/var/%s.cov.bed.gz" % (tmpDir, i+1)
             if ( os.stat(ifile).st_size == 0 ) : continue
             cmd += "bgzip -dc %s >> %s ;" % (ifile, outFile)
-        cmd += "bgzip -@ %s -f %s; sleep 3; bgzip -@ %s -t %s.gz ;" % (
+        cmd += "bgzip -@ %s -f %s; /bin/sleep 3; bgzip -@ %s -t %s.gz ;" % (
             args.threads, outFile, args.threads, outFile)
         cmd += "tabix -f %s.gz" % (outFile)
         runCommand(cmd)
@@ -1218,7 +1218,7 @@ if (args.subcommand == 'post'):
                      var['bulkReverseTotal'][i], var['dplxASXS'][i], var['dplxCLIP'][i], var['dplxNM'][i], var['bulkASXS'][i],
                      var['bulkNM'][i])
                 iofile.write(iline)
-        cmd = "bgzip -@ %s -f %s/post/%s.muts.vcf; sleep 3; bgzip -@ %s -t %s/post/%s.muts.vcf.gz;" % (
+        cmd = "bgzip -@ %s -f %s/post/%s.muts.vcf; /bin/sleep 3; bgzip -@ %s -t %s/post/%s.muts.vcf.gz;" % (
             args.threads, tmpDir, args.name, args.threads, tmpDir, args.name)
         cmd += "bcftools index -t -f %s/post/%s.muts.vcf.gz " % (
             tmpDir, args.name)
