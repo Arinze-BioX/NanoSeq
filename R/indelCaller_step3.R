@@ -76,7 +76,7 @@ if (!file.exists(bam_file)) {
 }
 
 if (length(grep("\\.gz", vcf_file)) > 0) {
-  system(paste("gzip -t ", vcf_file), intern= TRUE)
+  system(paste("/bin/gzip -t ", vcf_file), intern= TRUE)
 }
 
 FLANK = 5

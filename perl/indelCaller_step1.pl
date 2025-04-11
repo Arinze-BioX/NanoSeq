@@ -57,11 +57,11 @@ GetOptions('rb|reads-bundle=i'  => \$min_size_subfam,
 pod2usage(-verbose => 1, -exitval => 0) if(defined $opts{'h'});
 pod2usage(2) if( @ARGV != 1 );
 die ("\nOutput file not defined\n") unless(defined $opts{'o'});
-open(OUT,"| gzip >$opts{'o'}") or die ("\nCouldn't stream to output file $!\n");
+open(OUT,"| /bin/gzip >$opts{'o'}") or die ("\nCouldn't stream to output file $!\n");
 
 my $FILE = $ARGV[0];
 die ("\nInput file $FILE not found\n") unless ( -e $FILE );
-open(IN, "zcat $FILE |") or die( "\nProblem with gunzip $FILE\n" );
+open(IN, "/bin/zcat $FILE |") or die( "\nProblem with gunzip $FILE\n" );
 
 while(<IN>) {
   next if(/^#/); #in case it is receiving multiple csv files!

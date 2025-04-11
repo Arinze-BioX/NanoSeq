@@ -79,7 +79,7 @@ $sample_name = "sample_1" unless ( $sample_name);
 
 my $FILE = $ARGV[0];
 die ("\nInput file $FILE not found\n") unless ( -e $FILE );
-open(IN, "zcat $FILE |") or die( "\nProblem with gunzip $FILE\n" );
+open(IN, "/bin/zcat $FILE |") or die( "\nProblem with gunzip $FILE\n" );
 
 my $tempdir;
 if ( defined $opts{'k'} ){
