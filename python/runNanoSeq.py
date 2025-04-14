@@ -1161,7 +1161,7 @@ if (args.subcommand == 'post'):
         print("\nMerge coverage files for var\n")
         # merge coverage files
         outFile = "%s/post/%s.cov.bed" % (tmpDir, args.name)
-        cmd = "rm -f %s;" % (outFile)
+        cmd = "/bin/rm -f %s;" % (outFile)
         for i in range(nfiles):
             ifile = "%s/var/%s.cov.bed.gz" % (tmpDir, i+1)
             if ( os.stat(ifile).st_size == 0 ) : continue
@@ -1231,9 +1231,9 @@ if (args.subcommand == 'post'):
             ifile = tmpDir+"/indel/%s.indel.filtered.vcf.gz" % (i+1)
             if ( os.stat(ifile).st_size == 0 ) : continue
             vcf2Merge.append(ifile)
-        cmd = "cp %s %s/indel/merged.vcf.gz ;" % (vcf2Merge.pop(0), tmpDir)
+        cmd = "/bin/cp %s %s/indel/merged.vcf.gz ;" % (vcf2Merge.pop(0), tmpDir)
         for ifile in vcf2Merge[0:]:
-            cmd += "bcftools concat --no-version -Oz -o %s/indel/tmp.xxx.vcf.gz %s/indel/merged.vcf.gz %s; mv %s/indel/tmp.xxx.vcf.gz %s/indel/merged.vcf.gz; " % (tmpDir, tmpDir, ifile, tmpDir, tmpDir)
+            cmd += "bcftools concat --no-version -Oz -o %s/indel/tmp.xxx.vcf.gz %s/indel/merged.vcf.gz %s; /bin/mv %s/indel/tmp.xxx.vcf.gz %s/indel/merged.vcf.gz; " % (tmpDir, tmpDir, ifile, tmpDir, tmpDir)
         cmd += "bcftools sort -Oz -o %s/post/%s.indel.vcf.gz %s/indel/merged.vcf.gz;" % (tmpDir, args.name, tmpDir)
         cmd += "bcftools index -t -f %s/post/%s.indel.vcf.gz " % (
             tmpDir, args.name)

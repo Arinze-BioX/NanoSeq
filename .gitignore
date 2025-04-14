@@ -3,4 +3,5 @@ bugfix-scratch/
 *.log
 .snakemake/
 *.RBs*
+*.RBs
 *.tsv
