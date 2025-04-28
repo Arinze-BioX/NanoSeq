@@ -48,7 +48,7 @@ rule extract_tags:
 
 rule align_tumor:
     input: "{WORKING_FOLDER}/data/trimmed/{sample}_1.fq.gz", "{WORKING_FOLDER}/data/trimmed/{sample}_2.fq.gz"
-    output: "{WORKING_FOLDER}/data/align/{sample}.sam"
+    output: "{WORKING_FOLDER}/data/align/{sample}.bam"
     threads: 16
     resources:
         mem_mb=40000,
@@ -58,11 +58,38 @@ rule align_tumor:
     shell: """
     singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {BWA_FOLDER} \
     --env "PATH=/home/ubuntu/miniforge3/bin:${{PATH}}" nanoseq_1.1.0.sif /bin/bash -c "bwa mem \
-    -t {threads} -C {BWA_INDEX} {input[0]} {input[1]} > {output}"
+    -t {threads} -C {BWA_INDEX} {input[0]} {input[1]} | \
+  samtools sort -@ 4 -o {output} -"
 """
 
+rule align_normal:
+    input:
+        norm_r1 = lambda wildcards: FILES[wildcards.sample]['matched_R1'],
+        norm_r2 = lambda wildcards: FILES[wildcards.sample]['matched_R2']
+    output: align_norm
+    threads: 16
+    resources:
+        mem_mb=40000,
+        slurm_partition="petljaklab"
+    message: "Align trimmed reads in normal samples: {input} to the genome using {threads} threads"
+    log: "{WORKING_FOLDER}/00_log/{sample}_norm.bwa"
+    shell: """
+    singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {NORM_FOLDER} -B {BWA_FOLDER} \
+    --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.1.0.sif /bin/bash -c "bwa mem -t {threads} {BWA_INDEX} {input[0]} {input[1]} 2> {log} | samtools sort -@ {threads} -o {output} -"
+"""
+
+rule index_normal_bam:
+    input:  "{WORKING_FOLDER}/data/align_norm/{sample}.bam"
+    output: "{WORKING_FOLDER}/data/align_norm/{sample}.bam.bai"
+    threads: 8
+    log: "{WORKING_FOLDER}/00_log/{sample}.samtoolsNormIndex"
+    shell: """
+    singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {NORM_FOLDER} \
+    --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.1.0.sif /bin/bash -c "samtools index -@ 4 {input} -o {output} 2> {log}"
+    """
+
 rule add_rc_mc_tags:
-    input: "{WORKING_FOLDER}/data/align/{sample}.sam"
+    input: "{WORKING_FOLDER}/data/align/{sample}.bam"
     output: "{WORKING_FOLDER}/data/align/{sample}_od.bam"
     threads: 16
     message: "append rc & mc tags"
@@ -70,7 +97,7 @@ rule add_rc_mc_tags:
     shell: """
     mkdir -p {WORKING_FOLDER}/tmp_{wildcards.sample}_rcmc
     singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} \
-    --env "PATH=/home/ubuntu/miniforge3/bin:${{PATH}}" nanoseq_1.1.0.sif /bin/bash -c "bamsormadup tmpfile={WORKING_FOLDER}/tmp_{wildcards.sample}_rcmc inputformat=sam rcsupport=1 threads={threads} < {input} > {output}"
+    --env "PATH=/home/ubuntu/miniforge3/bin:${{PATH}}" nanoseq_1.1.0.sif /bin/bash -c "bamsormadup tmpfile={WORKING_FOLDER}/tmp_{wildcards.sample}_rcmc inputformat=bam rcsupport=1 threads={threads} < {input} > {output}"
     rm -rf {WORKING_FOLDER}/tmp_{wildcards.sample}_rcmc
     """
 
@@ -154,8 +181,8 @@ rule nanoseq_cov:
     """
 
 rule nanoseq_partition:
-    input:  "{WORKING_FOLDER}/data/dedup/{sample}.bam", "{WORKING_FOLDER}/data/filtered/{sample}.bam","{WORKING_FOLDER}/{sample}_nanoseq_cov.txt",
-            "{WORKING_FOLDER}/data/dedup/{sample}.bam.bai", "{WORKING_FOLDER}/data/filtered/{sample}.bam.bai"
+    input:  "{WORKING_FOLDER}/data/align_norm/{sample}.bam", "{WORKING_FOLDER}/data/filtered/{sample}.bam","{WORKING_FOLDER}/{sample}_nanoseq_cov.txt",
+            "{WORKING_FOLDER}/data/align_norm/{sample}.bam.bai", "{WORKING_FOLDER}/data/filtered/{sample}.bam.bai"
     output: touch("{WORKING_FOLDER}/{sample}_nanoseq_part.txt")
     threads: 1
     message: "Nanoseq_partition"
@@ -165,8 +192,8 @@ rule nanoseq_partition:
     --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.1.0.sif /bin/bash -c "python {CODE_HOME}/python/runNanoSeq.py --out {WORKING_FOLDER}/{wildcards.sample} -t 1 -A {input[0]} -B {input[1]} -R {BWA_INDEX} part -n 16 2>{log}"
     """
 rule nanoseq_dsa:
-    input:  "{WORKING_FOLDER}/data/dedup/{sample}.bam", "{WORKING_FOLDER}/data/filtered/{sample}.bam", "{WORKING_FOLDER}/{sample}_nanoseq_part.txt",
-            "{WORKING_FOLDER}/data/dedup/{sample}.bam.bai", "{WORKING_FOLDER}/data/filtered/{sample}.bam.bai"
+    input:  "{WORKING_FOLDER}/data/align_norm/{sample}.bam", "{WORKING_FOLDER}/data/filtered/{sample}.bam", "{WORKING_FOLDER}/{sample}_nanoseq_part.txt",
+            "{WORKING_FOLDER}/data/align_norm/{sample}.bam.bai", "{WORKING_FOLDER}/data/filtered/{sample}.bam.bai"
     output: touch("{WORKING_FOLDER}/{sample}_nanoseq_dsa.txt")
     threads: 16
     message: "Nanoseq_dsa"
@@ -177,8 +204,8 @@ rule nanoseq_dsa:
     """
 
 rule nanoseq_var:
-    input:  "{WORKING_FOLDER}/data/dedup/{sample}.bam", "{WORKING_FOLDER}/data/filtered/{sample}.bam", "{WORKING_FOLDER}/{sample}_nanoseq_dsa.txt",
-            "{WORKING_FOLDER}/data/dedup/{sample}.bam.bai", "{WORKING_FOLDER}/data/filtered/{sample}.bam.bai"
+    input:  "{WORKING_FOLDER}/data/align_norm/{sample}.bam", "{WORKING_FOLDER}/data/filtered/{sample}.bam", "{WORKING_FOLDER}/{sample}_nanoseq_dsa.txt",
+            "{WORKING_FOLDER}/data/align_norm/{sample}.bam.bai", "{WORKING_FOLDER}/data/filtered/{sample}.bam.bai"
     output: touch("{WORKING_FOLDER}/{sample}_nanoseq_var.txt")
     threads: 16
     message: "Nanoseq_var"
@@ -190,8 +217,8 @@ rule nanoseq_var:
     """
 
 rule nanoseq_indel:
-    input:  "{WORKING_FOLDER}/data/dedup/{sample}.bam", "{WORKING_FOLDER}/data/filtered/{sample}.bam", "{WORKING_FOLDER}/{sample}_nanoseq_dsa.txt",
-            "{WORKING_FOLDER}/data/dedup/{sample}.bam.bai", "{WORKING_FOLDER}/data/filtered/{sample}.bam.bai"
+    input:  "{WORKING_FOLDER}/data/align_norm/{sample}.bam", "{WORKING_FOLDER}/data/filtered/{sample}.bam", "{WORKING_FOLDER}/{sample}_nanoseq_dsa.txt",
+            "{WORKING_FOLDER}/data/align_norm/{sample}.bam.bai", "{WORKING_FOLDER}/data/filtered/{sample}.bam.bai"
     output: touch("{WORKING_FOLDER}/{sample}_nanoseq_indel.txt")
     threads: 16
     message: "Nanoseq_indel"
@@ -203,7 +230,7 @@ rule nanoseq_indel:
     """
 
 rule nanoseq_post:
-    input:  "{WORKING_FOLDER}/data/dedup/{sample}.bam", "{WORKING_FOLDER}/data/filtered/{sample}.bam", 
+    input:  "{WORKING_FOLDER}/data/align_norm/{sample}.bam", "{WORKING_FOLDER}/data/filtered/{sample}.bam", 
             "{WORKING_FOLDER}/{sample}_nanoseq_indel.txt", "{WORKING_FOLDER}/{sample}_nanoseq_var.txt",
             "{WORKING_FOLDER}/{sample}_nanoseq_cov.txt", "{WORKING_FOLDER}/{sample}_nanoseq_dsa.txt",
             "{WORKING_FOLDER}/{sample}_nanoseq_part.txt"
@@ -214,4 +241,16 @@ rule nanoseq_post:
     shell: """
     singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {CODE_HOME} -B {BWA_FOLDER} \
     --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.1.0.sif /bin/bash -c "python {CODE_HOME}/python/runNanoSeq.py --out {WORKING_FOLDER}/{wildcards.sample} -t 2 -A {input[0]} -B {input[1]} -R {BWA_INDEX} post 2>{log}"
+    """
+
+    rule nanoseq_plot_variant_filtering:
+    input:  "{WORKING_FOLDER}/{sample}_nanoseq_post.txt"
+    output: touch("{WORKING_FOLDER}/{sample}_variant_qc.txt")
+    threads: 1
+    message: "Plot graphs to assess quality of variant calling and filtering"
+    log: "{WORKING_FOLDER}/00_log/{sample}.varaint_qc"
+    shell: """
+    singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {CODE_HOME} \
+    --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.1.0.sif /bin/bash -c "Rscript {CODE_HOME}/R/plot_variant_filtering_qc.R {WORKING_FOLDER}/{wildcards.sample}/tmpNanoSeq/post/discardedvariants.csv \
+    {WORKING_FOLDER}/{wildcards.sample}/tmpNanoSeq/post/variants.csv {WORKING_FOLDER}/{wildcards.sample}/tmpNanoSeq/variant_filter_qc 2>{log}"
     """

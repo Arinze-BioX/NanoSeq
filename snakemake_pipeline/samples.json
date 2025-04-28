@@ -1,20 +1,19 @@
 {
-    "CB_Nanoseq_AF4": {
-        "R1":["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000013/01.RawData/CB_Nanoseq_AF4/CB_Nanoseq_AF4_CKDL250008977-1A_22TG5HLT4_L2_1.fq.gz"],
-        "R2":["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000013/01.RawData/CB_Nanoseq_AF4/CB_Nanoseq_AF4_CKDL250008977-1A_22TG5HLT4_L2_2.fq.gz"],
-        "matched_R1":["/gpfs/home/okafoa01/udseq_nanoseq_pipeline_032025/data/combined_study12_matchedNorm_1.fq.gz"],
-        "matched_R2":["/gpfs/home/okafoa01/udseq_nanoseq_pipeline_032025/data/combined_study12_matchedNorm_2.fq.gz"]
+    "SAMPLE_1": {
+        "R1":[""],
+        "R2":[""],
+        "matched_R1":[""],
+        "matched_R2":[""]
+    },"SAMPLE_2": {
+        "R1":[""],
+        "R2":[""],
+        "matched_R1":[""],
+        "matched_R2":[""]
     },
-    "CB_Nanoseq_AF2": {
-        "R1":["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000013/01.RawData/CB_Nanoseq_AF2/CB_Nanoseq_AF2_CKDL250008977-1A_22TG5HLT4_L2_1.fq.gz"],
-        "R2":["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000013/01.RawData/CB_Nanoseq_AF2/CB_Nanoseq_AF2_CKDL250008977-1A_22TG5HLT4_L2_2.fq.gz"],
-        "matched_R1":["/gpfs/home/okafoa01/udseq_nanoseq_pipeline_032025/data/combined_study12_matchedNorm_1.fq.gz"],
-        "matched_R2":["/gpfs/home/okafoa01/udseq_nanoseq_pipeline_032025/data/combined_study12_matchedNorm_2.fq.gz"]
-    },
-    "CB_Nanoseq_AF1": {
-        "R1":["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000013/01.RawData/CB_Nanoseq_AF1/CB_Nanoseq_AF1_CKDL250008977-1A_22TG5HLT4_L2_1.fq.gz"],
-        "R2":["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000013/01.RawData/CB_Nanoseq_AF1/CB_Nanoseq_AF1_CKDL250008977-1A_22TG5HLT4_L2_2.fq.gz"],
-        "matched_R1":["/gpfs/home/okafoa01/udseq_nanoseq_pipeline_032025/data/combined_study12_matchedNorm_1.fq.gz"],
-        "matched_R2":["/gpfs/home/okafoa01/udseq_nanoseq_pipeline_032025/data/combined_study12_matchedNorm_2.fq.gz"]
+    "SAMPLE_3": {
+        "R1":[""],
+        "R2":[""],
+        "matched_R1":[""],
+        "matched_R2":[""]
     }
 }

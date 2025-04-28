@@ -1,7 +1,6 @@
 BWA_INDEX: /gpfs/data/petljaklab/resources/hg38/pipeline_resources/genome/bwa/hg38.fa
 SAMPLES_JSON: 'snakemake_pipeline/samples.json'
-FASTQ_FOLDER: '/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000013/01.RawData'
-WORKING_FOLDER: '/gpfs/data/petljaklab/data/nanoseq_optimize_IP/data'
-NORM_FOLDER: '/gpfs/home/okafoa01/udseq_nanoseq_pipeline_032025/data'
-CODE_HOME: '/gpfs/data/petljaklab/data/nanoseq_optimize_IP/Nanoseq_code'
+FASTQ_FOLDER: '/path/to/fastq_folder_for_both_Normal_and_Tumor'
+WORKING_FOLDER: 'path/to/working_folder' # where outputs will be saved
+CODE_HOME: '/gpfs/data/petljaklab/arinze/cisplatin_nanoseq/Nanoseq_code' #path to this repository containing the pipeline
 BWA_FOLDER: /gpfs/data/petljaklab/resources/hg38/pipeline_resources/genome/bwa
