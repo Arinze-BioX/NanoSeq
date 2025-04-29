@@ -16,16 +16,19 @@ partitions      = config['partitions']
 GERMLINE_TBL   = config['GERMLINE_TBL']
 GERMLINE_VCF   = config['GERMLINE_VCF']
 CELL_LINE_GENOTYPE_REGIONS = config['CELL_LINE_GENOTYPE_REGIONS']
+VERIFYBAMID_HOME = config['VERIFYBAMID_HOME']
 
 TARGETS = []
 post  = expand("{WORKING_FOLDER}/{sample}_nanoseq_post.txt", sample = SAMPLES, WORKING_FOLDER = WORKING_FOLDER)
 eff = expand("{WORKING_FOLDER}/{sample}_nanoseq_efficiency.txt", sample = SAMPLES, WORKING_FOLDER = WORKING_FOLDER)
 variant_qc = expand("{WORKING_FOLDER}/{sample}_variant_qc.txt", sample = SAMPLES, WORKING_FOLDER = WORKING_FOLDER)
 verify = expand("{WORKING_FOLDER}/{sample}_nanoseq_efficiency.txt", sample = SAMPLES, WORKING_FOLDER = WORKING_FOLDER) 
+verify_cellLine = expand("{WORKING_FOLDER}/data/cell_qc/{sample}_cell_verify.txt", sample = SAMPLES, WORKING_FOLDER = WORKING_FOLDER)
 TARGETS.extend(post)
 TARGETS.extend(verify)
 TARGETS.extend(variant_qc)
 TARGETS.extend(eff)
+TARGETS.extend(verify_cellLine)
 
 localrules: all
 
@@ -194,7 +197,7 @@ rule nanoseq_dsa:
     input:  "{WORKING_FOLDER}/data/align_norm/{sample}.bam", "{WORKING_FOLDER}/data/filtered/{sample}.bam", "{WORKING_FOLDER}/{sample}_nanoseq_part.txt",
             "{WORKING_FOLDER}/data/align_norm/{sample}.bam.bai", "{WORKING_FOLDER}/data/filtered/{sample}.bam.bai"
     output: touch("{WORKING_FOLDER}/{sample}_nanoseq_dsa.txt")
-    threads: {partitions}
+    threads: partitions
     message: "Nanoseq_dsa"
     log: "{WORKING_FOLDER}/00_log/{sample}.nanoseq_dsa"
     shell: """
@@ -206,7 +209,7 @@ rule nanoseq_var:
     input:  "{WORKING_FOLDER}/data/align_norm/{sample}.bam", "{WORKING_FOLDER}/data/filtered/{sample}.bam", "{WORKING_FOLDER}/{sample}_nanoseq_dsa.txt",
             "{WORKING_FOLDER}/data/align_norm/{sample}.bam.bai", "{WORKING_FOLDER}/data/filtered/{sample}.bam.bai"
     output: touch("{WORKING_FOLDER}/{sample}_nanoseq_var.txt")
-    threads: {partitions}
+    threads: partitions
     message: "Nanoseq_var"
     log: "{WORKING_FOLDER}/00_log/{sample}.nanoseq_var"
     shell: """
@@ -219,7 +222,7 @@ rule nanoseq_indel:
     input:  "{WORKING_FOLDER}/data/align_norm/{sample}.bam", "{WORKING_FOLDER}/data/filtered/{sample}.bam", "{WORKING_FOLDER}/{sample}_nanoseq_dsa.txt",
             "{WORKING_FOLDER}/data/align_norm/{sample}.bam.bai", "{WORKING_FOLDER}/data/filtered/{sample}.bam.bai"
     output: touch("{WORKING_FOLDER}/{sample}_nanoseq_indel.txt")
-    threads: {partitions}
+    threads: partitions
     message: "Nanoseq_indel"
     log: "{WORKING_FOLDER}/00_log/{sample}.nanoseq_indel"
     shell: """
@@ -251,7 +254,7 @@ rule nanoseq_plot_variant_qc:
     shell: """
     singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {CODE_HOME} \
     --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.1.0.sif /bin/bash -c "Rscript {CODE_HOME}/R/variant_filtering_qc.R {WORKING_FOLDER}/{wildcards.sample}/tmpNanoSeq/post/discardedvariants.csv \
-    {WORKING_FOLDER}/{wildcards.sample}/tmpNanoSeq/post/variants.csv {WORKING_FOLDER}/{wildcards.sample}/tmpNanoSeq {partitions} 2>{log}"
+    {WORKING_FOLDER}/{wildcards.sample}/tmpNanoSeq/post/variants.csv {WORKING_FOLDER}/{wildcards.sample}/tmpNanoSeq partitions 2>{log}"
     """
 
 rule verify_cell_line_origin:
@@ -274,15 +277,15 @@ cat {WORKING_FOLDER}/data/cell_qc/{wildcards.sample}_{GERMLINE_TBL} | Rscript \
     """
 
 
-
-# rule verify_cell_origin:
-#     input:  "{WORKING_FOLDER}/{sample}_verify_cellLine.txt"
-#     output: touch("{WORKING_FOLDER}/{sample}_verify.txt")
-#     threads: 1
-#     message: "Plot graphs to assess quality of variant calling and filtering"
-#     log: "{WORKING_FOLDER}/00_log/{sample}.varaint_qc"
-#     shell: """
-#     singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {CODE_HOME} \
-#     --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.1.0.sif /bin/bash -c "Rscript {CODE_HOME}/R/variant_filtering_qc.R {WORKING_FOLDER}/{wildcards.sample}/tmpNanoSeq/post/discardedvariants.csv \
-#     {WORKING_FOLDER}/{wildcards.sample}/tmpNanoSeq/post/variants.csv {WORKING_FOLDER}/{wildcards.sample}/tmpNanoSeq {partitions} 2>{log}"
-#     """
+rule verify_cell_origin:
+    input:  "{WORKING_FOLDER}/data/dedup/{sample}.bam"
+    output: touch("{WORKING_FOLDER}/{sample}_verify.txt")
+    threads: 1
+    message: "Verify bam ID"
+    log: "{WORKING_FOLDER}/00_log/{sample}.verifyBamId"
+    shell: """
+    singularity exec -B {BWA_FOLDER} -B {WORKING_FOLDER} -B {CODE_HOME} -B {VERIFYBAMID_HOME} \
+    --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.1.0.sif /bin/bash -c \
+    "VerifyBamID --SVDPrefix {VERIFYBAMID_HOME}/resource/1000g.100k.b38.vcf.gz.dat \
+    --Reference {BWA_INDEX} --BamFile {input} 2>{log}"
+    """
