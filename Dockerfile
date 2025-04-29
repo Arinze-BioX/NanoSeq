@@ -130,8 +130,11 @@ RUN conda config --add channels conda-forge
 RUN conda install -y mamba=2.0.7
 
 # Install other packages from conda using mamba
-RUN mamba install -y -c conda-forge -y r-base=4.3.3 r-epitools=0.5_10.1 r-ggplot2=3.5.1 r-data.table=1.17.0 r-gridextra=2.3
-RUN mamba install -c bioconda -y bioconductor-deepsnv=1.48.0 r-vcfr=1.15.0 r-seqinr=4.2_36 snakemake=9.1.1 snakemake-executor-plugin-slurm bwa=0.7.19 biobambam=2.0.185
+RUN mamba install -y -c conda-forge -y r-base=4.3.3 r-epitools=0.5_10.1 r-ggplot2=3.5.1 r-data.table=1.17.0 r-gridextra=2.3 perl=5.32.1 perl-file-which=1.24 r-upsetr=1.4.0 r-ggplot2=3.5.1
+RUN mamba install -c bioconda -y bioconductor-deepsnv=1.48.0 r-vcfr=1.15.0 r-seqinr=4.2_36 snakemake=9.1.1 snakemake-executor-plugin-slurm bwa=0.7.19 biobambam=2.0.185 verifybamid2=2.0.1 gatk=3.8
 RUN mamba install -y r::r-vgam=1.1_9
+RUN mamba install -y -c bioconda perl-getopt-long=2.58 perl-pod-usage=2.05 perl-capture-tiny=0.48
+
+ENV PATH /home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${PATH}
 
 CMD ["/bin/bash", "-i"]
