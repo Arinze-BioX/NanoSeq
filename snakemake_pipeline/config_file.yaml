@@ -4,3 +4,8 @@ FASTQ_FOLDER: '/path/to/fastq_folder_for_both_Normal_and_Tumor'
 WORKING_FOLDER: 'path/to/working_folder' # where outputs will be saved
 CODE_HOME: '/gpfs/data/petljaklab/arinze/cisplatin_nanoseq/Nanoseq_code' #path to this repository containing the pipeline
 BWA_FOLDER: /gpfs/data/petljaklab/resources/hg38/pipeline_resources/genome/bwa
+NOISE: /gpfs/data/petljaklab/arinze/common_data/noise_mask_gilad_nanoseq.bed.gz
+partitions: 16  #number of threads for main nanoseq analysis
+CELL_LINE_GENOTYPE_REGIONS: /gpfs/data/petljaklab/resources/hg19/pipeline_resources/somatic_celline/qc/1k_cells_genotyping/genotype_positions.txt
+GERMLINE_VCF: germline_vcf.vcf
+GERMLINE_TBL: germline_variant_tbl.txt

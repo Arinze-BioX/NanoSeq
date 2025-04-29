@@ -79,7 +79,7 @@ subparsers.required = True  # work around for older python versions
 parser_cov = subparsers.add_parser('cov', help='coverage calculation')
 parser_covO = parser_cov._action_groups.pop()
 parser_covR = parser_cov.add_argument_group('required arguments')
-parser_covO.add_argument('--exclude', action='store', default='MT,GL%%,NC_%,hs37d5',
+parser_covO.add_argument('--exclude', action='store', default='chrM,%random,chrUn_%,%_alt,chrEBV,HLA%',
                          help='List of contigs to exclude. Comma separated, %% acts as a wild card. (MT,GL%%,NC_%%,hs37d5)')
 parser_covO.add_argument('--include', action='store',
                          help='Only include these contigs. Comma separated, %% acts as a wild card.')
@@ -144,9 +144,9 @@ parser_varO.add_argument('-p', type=int, action='store', default=0,
 parser_varO.add_argument('-q', type=int, action='store',
                          default=60, help="minimum consensus base quality (60)")
 parser_varO.add_argument('-r', type=int, action='store',
-                         default=144, help="read length (after 5' trimming) (144)")
+                         default=145, help="read length (after 5' trimming) (145)")
 parser_varO.add_argument('-v', type=float, action='store',
-                         default=0.01, help="maximum normal VAF (0.01)")
+                         default=0.01, help="maximum normal VAF (0.0667)")
 parser_varO.add_argument('-x', type=int, action='store',
                          default=8, help="maximum cycle number (8)")
 parser_varO.add_argument('-z', type=int, action='store',
