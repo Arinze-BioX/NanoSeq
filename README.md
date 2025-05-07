@@ -31,4 +31,6 @@ Of course, this would require locally installing git as well as whatever softwar
 #### Note: 
 The run_snake.sh file would need to be run in a slurm context if running on a hpc, due to local memory requirement. The terminal where run_snake.sh will also need to be protected from time-out disconnection either running it through sbatch or in a tmux session.
 
+Also, please note the use of sample names and lane names for naming the initial fastq filles. Following similar structure with your own file naming prevents ambiquity with sample and lane identities during the pipeline run. To change your fastq file names to match this pattern, one may either directly edit the ffastq file names or use a properly named link (sym link or hard link) as the file path entered in the sample.json file.
+
 Please find more details about this pipeline in the README of the original pipeline and the associated papers.
