@@ -416,19 +416,84 @@ class GInterval:
             return False
 
 
+# def runCommand(command):
+#     if (command is None):
+#         return
+#     for ijob in command.rstrip(';').split(';'):
+#         print("\nExecuting: %s\n" % ijob)
+#         p = subprocess.Popen(
+#             ijob, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+#         std: tuple = p.communicate()
+#         if (p.returncode != 0):
+#             error = std[1].decode()
+#             sys.stderr.write("\n!Error processing:  %s\n" % ijob)
+#             raise ValueError(error)
+#     return
+
 def runCommand(command):
-    if (command is None):
+    """
+    Executes a shell command or a series of shell commands separated by ';'.
+    Modified to handle a specific exit condition from 'variantcaller.R' as non-fatal.
+    """
+    if command is None:
         return
+
+    # Split the command string into individual jobs if multiple are joined by ';'
     for ijob in command.rstrip(';').split(';'):
-        print("\nExecuting: %s\n" % ijob)
-        p = subprocess.Popen(
-            ijob, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
-        std: tuple = p.communicate()
-        if (p.returncode != 0):
-            error = std[1].decode()
-            sys.stderr.write("\n!Error processing:  %s\n" % ijob)
-            raise ValueError(error)
+        print(f"\nExecuting: {ijob}\n")
+        try:
+            # Execute the command
+            # stdout is redirected by the command string itself if '>' is used.
+            # We capture stderr to check for specific messages.
+            p = subprocess.Popen(
+                ijob,
+                shell=True,  # Allows shell features like redirection
+                stdout=subprocess.PIPE, # Capture stdout to prevent it from mixing with Python's stdout
+                stderr=subprocess.PIPE,
+                text=True # Decodes stdout/stderr to strings
+            )
+            stdout_output, stderr_output = p.communicate()
+
+            # Print stdout from the command if any (useful for debugging, can be removed if too verbose)
+            if stdout_output:
+                print(f"Stdout from {ijob}:\n{stdout_output}")
+
+            # Check the return code
+            if p.returncode != 0:
+                # Specific handling for variantcaller.R
+                is_variant_caller_script = "nanoseq_results_plotter.R" in ijob
+                is_known_variant_caller_exit_condition = (
+                    is_variant_caller_script and
+                    p.returncode == 1 and
+                    "0 reference calls. Exiting…" in stderr_output
+                )
+
+                if is_known_variant_caller_exit_condition:
+                    # This is the specific condition we want to treat as a non-error for the pipeline
+                    print(f"INFO: '{ijob}' exited with code 1 and the expected message: '0 reference calls. Exiting…'. "
+                          "This is treated as a successful completion for pipeline purposes.\n")
+                    # Optionally, print the specific R message to stderr for logging clarity
+                    sys.stderr.write(f"Note: Known non-fatal condition from '{ijob}':\n{stderr_output}\n")
+                else:
+                    # Original error handling for other commands or other errors
+                    sys.stderr.write(f"\n!Error processing: {ijob}\n")
+                    sys.stderr.write(f"Exit code: {p.returncode}\n")
+                    if stderr_output:
+                        sys.stderr.write(f"Stderr:\n{stderr_output}\n")
+                    # Raise a more informative ValueError
+                    raise ValueError(
+                        f"Command '{ijob}' failed with exit code {p.returncode}.\n"
+                        f"Stderr: {stderr_output if stderr_output else 'N/A'}"
+                    )
+        except FileNotFoundError:
+            sys.stderr.write(f"\n!Error: Command or script not found: {ijob.split()[0]}\n")
+            raise
+        except Exception as e:
+            sys.stderr.write(f"\n!An unexpected error occurred while trying to run: {ijob}\n")
+            sys.stderr.write(f"Error details: {e}\n")
+            raise
     return
+
 
 # compute coverage histogram
 
