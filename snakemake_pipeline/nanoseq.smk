@@ -100,23 +100,22 @@ rule align_normal:
     -t {threads} {BWA_INDEX} {input.norm_r1} {input.norm_r2} 2> {log} | \
     samtools sort -@ {threads} -o {output.bam} -"
 """
-# Note: Added a generic RG string for normal sample
 
 rule index_normal_bam:
     input:
         bam=f"{WORKING_FOLDER}/data/align_norm/{{sample}}.bam"
     output:
         bai=f"{WORKING_FOLDER}/data/align_norm/{{sample}}.bam.bai"
-    threads: 8 # Should be <= samtools index -@ threads
+    threads: 8
     log: f"{WORKING_FOLDER}/00_log/{{sample}}.samtoolsNormIndex"
     shell: """
     singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {NORM_FASTQ_FOLDER} \
-    --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.1.0.sif /bin/bash -c "samtools index -@ 4 {input.bam} -o {output.bai} 2> {log}"
+    --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.1.0.sif /bin/bash -c "samtools index -@ {threads} {input.bam} -o {output.bai} 2> {log}"
     """
 
 rule add_rc_mc_tags:
     input:
-        bam=f"{WORKING_FOLDER}/data/align/{{sample}}-{{lane}}_aligned.bam" # Takes the renamed output from align_tumor
+        bam=f"{WORKING_FOLDER}/data/align/{{sample}}-{{lane}}_aligned.bam"
     output:
         bam_od=f"{WORKING_FOLDER}/data/align/{{sample}}-{{lane}}_od.bam"
     threads: 16
@@ -139,7 +138,7 @@ rule mark_duplicates:
         bam_dupmarked=f"{WORKING_FOLDER}/data/align/{{sample}}-{{lane}}_dupMarked.bam"
     threads: 1 # bammarkduplicatesopt is often single-threaded
     log:
-        metrics=f"{WORKING_FOLDER}/00_log/{{sample}}-{{lane}}.markdups.metrics" # Log should capture metrics
+        metrics=f"{WORKING_FOLDER}/00_log/{{sample}}-{{lane}}.markdups.metrics"
     shell: """
     mkdir -p {WORKING_FOLDER}/tmp_{wildcards.sample}_{wildcards.lane}_dups
     singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} \
@@ -152,7 +151,7 @@ rule append_rb_tag_filter:
         bam_dupmarked=f"{WORKING_FOLDER}/data/align/{{sample}}-{{lane}}_dupMarked.bam"
     output:
         # This is the final BAM per lane before merging
-        bam_final_lane=f"{WORKING_FOLDER}/data/align/{{sample}}-{{lane}}_final.bam" # Renamed output
+        bam_final_lane=f"{WORKING_FOLDER}/data/align/{{sample}}-{{lane}}_final.bam"
     threads: 1
     log: f"{WORKING_FOLDER}/00_log/{{sample}}-{{lane}}.bamaddreadbundles"
     shell: """
@@ -183,11 +182,10 @@ def get_lane_bams(wildcards):
 
 rule merge_bams:
     input:
-        bams=get_lane_bams # Input function now points to the renamed final lane BAMs
+        bams=get_lane_bams
     output:
         merged_bam=f"{WORKING_FOLDER}/data/filtered/{{sample}}_merged.bam"
     threads: 8
-    # Corrected message and log file
     message: "Merging final lane BAMs for sample {wildcards.sample}"
     log: f"{WORKING_FOLDER}/00_log/{{sample}}.merge_bams"
     shell: """
@@ -209,13 +207,6 @@ rule index_tumor_bam:
     --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.1.0.sif /bin/bash -c "samtools index -@ 4 {input.merged_bam} -o {output.bai} 2> {log}"
     """
 
-# --- Remaining rules ---
-# (deduplicate_bam, index_dedup_bam, analyse_efficiency, nanoseq_cov,
-#  nanoseq_partition, nanoseq_dsa, nanoseq_var, nanoseq_indel,
-#  nanoseq_post, nanoseq_plot_variant_qc, verify_cell_origin)
-# Should be checked to ensure they use the correct input BAMs now
-# For example, deduplicate_bam likely needs input from merge_bams now
-
 rule deduplicate_bam:
     input:
         merged_bam=f"{WORKING_FOLDER}/data/filtered/{{sample}}_merged.bam" # Takes merged BAM as input
@@ -234,19 +225,18 @@ rule index_dedup_bam:
         dedup_bam=f"{WORKING_FOLDER}/data/dedup/{{sample}}.bam"
     output:
         bai=f"{WORKING_FOLDER}/data/dedup/{{sample}}.bam.bai"
-    threads: 4 # Should be <= samtools index -@ threads
+    threads: 4 
     log: f"{WORKING_FOLDER}/00_log/{{sample}}.samtoolsDedupIndex"
     shell: """
     singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} \
-    --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.1.0.sif /bin/bash -c "samtools index -@ 4 {input.dedup_bam} -o {output.bai} 2> {log}"
+    --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.1.0.sif /bin/bash -c "samtools index -@ {threads} {input.dedup_bam} -o {output.bai} 2> {log}"
     """
 
 rule analyse_efficiency:
     input:
-        # Ensure inputs point to the correct final files
         dedup_bam=f"{WORKING_FOLDER}/data/dedup/{{sample}}.bam",
-        merged_bam=f"{WORKING_FOLDER}/data/filtered/{{sample}}_merged.bam", # This might be the 'duplex' input? Check script logic.
-        dedup_bai=f"{WORKING_FOLDER}/data/dedup/{{sample}}.bam.bai" # Index might be needed implicitly by the script
+        merged_bam=f"{WORKING_FOLDER}/data/filtered/{{sample}}_merged.bam", 
+        dedup_bai=f"{WORKING_FOLDER}/data/dedup/{{sample}}.bam.bai" 
     output:
         touch(f"{WORKING_FOLDER}/{{sample}}_nanoseq_efficiency.txt")
     threads: 12
@@ -325,7 +315,7 @@ rule nanoseq_var:
     singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {CODE_HOME} -B {BWA_FOLDER} \
     --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.1.0.sif /bin/bash -c "python {CODE_HOME}/python/runNanoSeq.py --out {WORKING_FOLDER}/{wildcards.sample} -t {threads} -A {input.norm_bam} -B {input.tumor_bam} -R {BWA_INDEX} var \
     -a 50 -b 5 -c 0 -f 0.9 -i 1 -m 8 -n 3 -p 0 -q 60 -r 144 -v 0.01 -x 8 -z 12 2>{log}"
-    """ # Added 2>{log} redirect
+    """ 
 
 rule nanoseq_indel:
     input:
@@ -372,7 +362,6 @@ rule nanoseq_plot_variant_qc:
         touch(f"{WORKING_FOLDER}/{{sample}}_variant_qc.txt")
     threads: 1
     params:
-        # Assuming partitions is a parameter for the script
         partitions=partitions
     message: "Plot graphs to assess quality of variant calling and filtering"
     log: f"{WORKING_FOLDER}/00_log/{{sample}}.varaint_qc"
@@ -382,17 +371,12 @@ rule nanoseq_plot_variant_qc:
     {WORKING_FOLDER}/{wildcards.sample}/tmpNanoSeq/post/variants.csv {WORKING_FOLDER}/{wildcards.sample}/tmpNanoSeq {params.partitions} 2>{log}"
     """
 
-# rule verify_cell_line_origin: # Commented out as in original
-#     ...
 
 rule verify_cell_origin:
     input:
-        # Which BAM should this verify? The merged one? The dedup one? Assuming merged.
         bam=f"{WORKING_FOLDER}/data/filtered/{{sample}}_merged.bam"
     output:
-        # Original had touch("{WORKING_FOLDER}/{sample}_verify.txt") which doesn't match TARGETS
-        # Assuming the efficiency file is the intended target based on TARGETS list
-        touch(f"{WORKING_FOLDER}/{{sample}}_nanoseq_verify.txt") # Corrected output to match TARGETS
+        touch(f"{WORKING_FOLDER}/{{sample}}_nanoseq_verify.txt")
     threads: 1
     message: "Verify bam ID"
     log: f"{WORKING_FOLDER}/00_log/{{sample}}.verifyBamId"
