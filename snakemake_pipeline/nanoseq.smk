@@ -374,7 +374,8 @@ rule nanoseq_plot_variant_qc:
 
 rule verify_cell_origin:
     input:
-        bam=f"{WORKING_FOLDER}/data/filtered/{{sample}}_merged.bam"
+        bam=f"{WORKING_FOLDER}/data/filtered/{{sample}}_merged.bam",
+        bai=f"{WORKING_FOLDER}/data/filtered/{{sample}}_merged.bam.bai"
     output:
         touch(f"{WORKING_FOLDER}/{{sample}}_nanoseq_verify.txt")
     threads: 1
