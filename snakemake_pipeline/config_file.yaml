@@ -1,13 +1,13 @@
 BWA_INDEX: /gpfs/data/petljaklab/resources/hg38/pipeline_resources/genome/bwa/hg38.fa
 SAMPLES_JSON: snakemake_pipeline/samples.json
-FASTQ_FOLDER: /gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000013/full_seq_run
-WORKING_FOLDER: /gpfs/data/petljaklab/arinze/IP_nanoseq2_042025 # where outputs will be saved
-CODE_HOME: /gpfs/data/petljaklab/arinze/IP_nanoseq2_042025/Nanoseq_code #path to this repository containing the pipeline
+FASTQ_FOLDER: /gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000017
+WORKING_FOLDER: /gpfs/data/petljaklab/arinze/nanoseq_optimize_Oct2025/data # where outputs will be saved
+CODE_HOME: /gpfs/data/petljaklab/arinze/nanoseq_optimize_Oct2025/NanoSeq #path to this repository containing the pipeline
 BWA_FOLDER: /gpfs/data/petljaklab/resources/hg38/pipeline_resources/genome/bwa
-NOISE: /gpfs/data/petljaklab/arinze/common_data/noise_mask_gilad_nanoseq.bed.gz
+NOISE: /gpfs/data/petljaklab/arinze/nanoseq_optimize_Oct2025/NanoSeq/noise_mask_gilad_nanoseq.bed.gz
 partitions: 30  #number of threads for main nanoseq analysis
-CELL_LINE_GENOTYPE_REGIONS: /gpfs/data/petljaklab/resources/hg19/pipeline_resources/somatic_celline/qc/1k_cells_genotyping/genotype_positions.txt
-GERMLINE_VCF: germline_vcf.vcf
-GERMLINE_TBL: germline_variant_tbl.txt
+CELL_LINE_GENOTYPE_REGIONS: /gpfs/data/petljaklab/resources/hg19/pipeline_resources/somatic_celline/qc/1k_cells_genotyping/genotype_positions.txt  #present in container, leave unchanged
+GERMLINE_VCF: germline_vcf.vcf   #present in container, leave unchanged
+GERMLINE_TBL: germline_variant_tbl.txt   #present in container, leave unchanged
 VERIFYBAMID_HOME: /home/ubuntu/miniforge3/share/verifybamid2-2.0.1-12 #this path lives within the nanoseq container. Do not change.
-NORMALS_JSON: /gpfs/data/petljaklab/arinze/nanoseq_optimize_Oct2025/Nanoseq_code/snakemake_pipeline/normals.json
+NORMALS_JSON: /gpfs/data/petljaklab/arinze/nanoseq_optimize_Oct2025/NanoSeq/snakemake_pipeline/normals.json

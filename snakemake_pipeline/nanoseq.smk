@@ -19,8 +19,6 @@ GERMLINE_TBL    = config['GERMLINE_TBL']
 GERMLINE_VCF    = config['GERMLINE_VCF']
 CELL_LINE_GENOTYPE_REGIONS = config['CELL_LINE_GENOTYPE_REGIONS']
 VERIFYBAMID_HOME    = config['VERIFYBAMID_HOME']
-NORM_FASTQ_FOLDER          = config['NORM_FASTQ_FOLDER']
-MATCHED_FASTQ     = config['MATCHED_FASTQ']
 
 TARGETS = []
 post  = expand("{WORKING_FOLDER}/{sample}_nanoseq_post.txt", sample = SAMPLES, WORKING_FOLDER = WORKING_FOLDER)
@@ -56,7 +54,7 @@ rule extract_tags:
     singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {CODE_HOME} \
     --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" \
     nanoseq_1.1.0.sif /bin/bash -c "python {CODE_HOME}/python/extract_tags.py -a {input.r1} \
-    -b {input.r2} -c {output.r1_trimmed} -d {output.r2_trimmed} -m 3 -s 2 -l 150 1> {log.stdout} 2> {log.stderr}"
+    -b {input.r2} -c {output.r1_trimmed} -d {output.r2_trimmed} -m 3 -s 2 -l 151 1> {log.stdout} 2> {log.stderr}"
 """
 
 rule align_tumor:
@@ -84,18 +82,18 @@ rule align_tumor:
 
 rule align_normal:
     input:
-        norm_r1 = NORMALS[wildcards.sample]['R1'],
-        norm_r2 = NORMALS[wildcards.sample]['R2']
+        norm_r1 = lambda wildcards: NORMALS[wildcards.sample]['R1'],
+        norm_r2 = lambda wildcards: NORMALS[wildcards.sample]['R2']
     output:
         bam=f"{WORKING_FOLDER}/data/align_norm/{{sample}}.bam"
     threads: 16
     resources:
-        mem_mb=40000,
+        mem_mb=64000,
         slurm_partition="petljaklab"
     message: "Align trimmed reads in normal samples: {input} to the genome using {threads} threads"
     log: f"{WORKING_FOLDER}/00_log/{{sample}}_norm.bwa"
     shell: """
-    singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {BWA_FOLDER} -B {NORM_FASTQ_FOLDER} \
+    singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {BWA_FOLDER} \
     --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.1.0.sif /bin/bash -c "bwa mem \
     -R '@RG\\tID:groupN\\tSM:{{sample}}_N\\tLB:norm_lib\\tPL:ILLUMINA\\tPU:flowcellN.laneN' \
     -t {threads} {BWA_INDEX} {input.norm_r1} {input.norm_r2} 2> {log} | \
@@ -110,7 +108,7 @@ rule index_normal_bam:
     threads: 8
     log: f"{WORKING_FOLDER}/00_log/{{sample}}.samtoolsNormIndex"
     shell: """
-    singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {NORM_FASTQ_FOLDER} \
+    singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} \
     --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.1.0.sif /bin/bash -c "samtools index -@ {threads} {input.bam} -o {output.bai} 2> {log}"
     """
 
