@@ -5,6 +5,7 @@ import os # Import the os module
 
 configfile: "snakemake_pipeline/config_file.yaml"
 
+NORMALS         = json.load(open(config['NORMALS_JSON']))
 FILES           = json.load(open(config['SAMPLES_JSON']))
 SAMPLES         = sorted(FILES.keys())
 WORKING_FOLDER  = config['WORKING_FOLDER']
@@ -83,8 +84,8 @@ rule align_tumor:
 
 rule align_normal:
     input:
-        norm_r1 = f"{NORM_FASTQ_FOLDER}/{MATCHED_FASTQ}_1.fq.gz",
-        norm_r2 = f"{NORM_FASTQ_FOLDER}/{MATCHED_FASTQ}_1.fq.gz"
+        norm_r1 = NORMALS[wildcards.sample]['R1'],
+        norm_r2 = NORMALS[wildcards.sample]['R2']
     output:
         bam=f"{WORKING_FOLDER}/data/align_norm/{{sample}}.bam"
     threads: 16

@@ -10,5 +10,4 @@ CELL_LINE_GENOTYPE_REGIONS: /gpfs/data/petljaklab/resources/hg19/pipeline_resour
 GERMLINE_VCF: germline_vcf.vcf
 GERMLINE_TBL: germline_variant_tbl.txt
 VERIFYBAMID_HOME: /home/ubuntu/miniforge3/share/verifybamid2-2.0.1-12 #this path lives within the nanoseq container. Do not change.
-NORM_FASTQ_FOLDER: /gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000013/01.RawData/CB_Nanoseq_AF1
-MATCHED_FASTQ: CB_Nanoseq_AF1_CKDL250008977-1A_22TG5HLT4_L2
+NORMALS_JSON: /gpfs/data/petljaklab/arinze/nanoseq_optimize_Oct2025/Nanoseq_code/snakemake_pipeline/normals.json

@@ -1,0 +1,30 @@
+{
+    "sample1": {
+        "R1": ["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000017/S19_L3_10x_S1_L006_R1_001.fastq.gz"],
+        "R2": ["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000017/S19_L3_10x_S1_L006_R2_001.fastq.gz"]
+    },
+    "sample1": {
+        "R1": ["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000017/S19_L3_10x_S1_L006_R1_001.fastq.gz"],
+        "R2": ["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000017/S19_L3_10x_S1_L006_R2_001.fastq.gz"]
+    },
+    "sample1": {
+        "R1": ["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000017/S19_L3_10x_S1_L006_R1_001.fastq.gz"],
+        "R2": ["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000017/S19_L3_10x_S1_L006_R2_001.fastq.gz"]
+    },
+    "sample1": {
+        "R1": ["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000017/S19_L3_10x_S1_L006_R1_001.fastq.gz"],
+        "R2": ["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000017/S19_L3_10x_S1_L006_R2_001.fastq.gz"]
+    },
+    "sample1": {
+        "R1": ["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000017/S19_L3_10x_S1_L006_R1_001.fastq.gz"],
+        "R2": ["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000017/S19_L3_10x_S1_L006_R2_001.fastq.gz"]
+    },
+    "sample1": {
+        "R1": ["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000017/S19_L3_10x_S1_L006_R1_001.fastq.gz"],
+        "R2": ["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000017/S19_L3_10x_S1_L006_R2_001.fastq.gz"]
+    },
+    "sample1": {
+        "R1": ["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000017/S19_L3_10x_S1_L006_R1_001.fastq.gz"],
+        "R2": ["/gpfs/data/petljaklab/data/external_data/raw_sequencing_archive/MPP000017/S19_L3_10x_S1_L006_R2_001.fastq.gz"]
+    }
+}
