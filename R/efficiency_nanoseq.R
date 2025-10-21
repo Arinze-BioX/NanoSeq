@@ -111,6 +111,8 @@ dev.off()
 
 cat("READS_PER_RB\t", reads_per_RB, "\n", sep = "")
 cat("F-EFF\t", total_missed_fraction, "\n", sep = "")
+cat("strand_dropout\t", nrow(rbs_bck[which((rbs_bck$x == 0 | rbs_bck$y == 0)),]), "\n", sep = "")
+cat("Kinda_OK_RBS\t", nrow(rbs_bck[which(rbs_bck$x >= 1 & rbs_bck$y >= 1),]), "\n", sep = "")
 cat("OK_RBS\t", nrow(rbs_bck[which(rbs_bck$x >= 2 & rbs_bck$y >= 2),]), "\n", sep = "")
 cat("TOTAL_RBS\t", nrow(rbs_bck), "\n", sep = "")
 cat("TOTAL_READS\t", sum(c(rbs_bck$x, rbs_bck$y)) * 2, "\n", sep = "") #by 2 because we look only at one of the mates

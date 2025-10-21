@@ -249,9 +249,9 @@ rule analyse_efficiency:
 
 rule nanoseq_cov:
     input:
-        dedup_bam=f"{WORKING_FOLDER}/data/dedup/{{sample}}.bam",
+        normal_bam=f"{WORKING_FOLDER}/data/align_norm/{{sample}}.bam",
         merged_bam=f"{WORKING_FOLDER}/data/filtered/{{sample}}_merged.bam",
-        dedup_bai=f"{WORKING_FOLDER}/data/dedup/{{sample}}.bam.bai",
+        normal_bai=f"{WORKING_FOLDER}/data/align_norm/{{sample}}.bam.bai",
         merged_bai=f"{WORKING_FOLDER}/data/filtered/{{sample}}_merged.bam.bai"
     output:
         touch(f"{WORKING_FOLDER}/{{sample}}_nanoseq_cov.txt")
@@ -261,7 +261,7 @@ rule nanoseq_cov:
     shell: """
     mkdir -p {WORKING_FOLDER}/{wildcards.sample} # Create sample-specific output dir if needed by script
     singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {CODE_HOME} -B {BWA_FOLDER} \
-    --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.1.0.sif /bin/bash -c "python {CODE_HOME}/python/runNanoSeq.py --out {WORKING_FOLDER}/{wildcards.sample} -t {threads} -A {input.dedup_bam} -B {input.merged_bam} -R {BWA_INDEX} cov -Q 0 --exclude 'MT,GL%%,NC_%,hs37d5' 2>{log}"
+    --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.1.0.sif /bin/bash -c "python {CODE_HOME}/python/runNanoSeq.py --out {WORKING_FOLDER}/{wildcards.sample} -t {threads} -A {input.normal_bam} -B {input.merged_bam} -R {BWA_INDEX} cov -Q 0 --exclude 'chrM,MT,GL%%,NC_%,hs37d5' 2>{log}"
     """
 
 rule nanoseq_partition:

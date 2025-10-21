@@ -181,7 +181,7 @@ close(OUT);
 
 ##########################################################################################
 # Call R to get the two values that inform on strand misses:
-my($reads_per_rb,$f_eff,$zib_eff,$ok_rbs,$total_rbs,$gc_both,$gc_single,$total_reads);
+my($reads_per_rb,$f_eff,$zib_eff,$strand_dropout,$kinda_ok_rbs,$ok_rbs,$total_rbs,$gc_both,$gc_single,$total_reads);
 my $cmd = "efficiency_nanoseq.R $rb_output $ref_genome ";
 print STDOUT "Running: $cmd\n";
 my ($stdout, $stderr, $exit) = capture {
@@ -197,6 +197,10 @@ foreach (split('\n',$stdout)) {
     $f_eff = (split)[1];
   } elsif(/ZIB-EFF/) {
     $zib_eff = (split)[1];
+  } elsif(/strand_dropout/) {
+    $strand_dropout = (split)[1];
+  } elsif(/Kinda_OK_RBS/) {
+    $kinda_ok_rbs = (split)[1];
   } elsif(/OK_RBS/) {
     $ok_rbs = (split)[1];
   } elsif(/TOTAL_RBS/) {
@@ -224,10 +228,13 @@ print OUT "DUPLICATE_RATE\t$dup_rate\n";
 
 print OUT "# RB metrics are reported for chr/contig $region only:\n";
 
-my $bases_sequenced = $total_reads * 150;
-my $bases_ok_rbs    = $ok_rbs * (300); # assuming mates don't overlap. Removing 50 bps for varios trimmings (rough estimate)
+my $bases_sequenced = $total_reads * 145;
+my $bases_ok_rbs    = $ok_rbs * (290); # assuming mates don't overlap. Removing 10 bps for varios trimmings (rough estimate)
+my $bases_kinda_ok_rbs = $kinda_ok_rbs * (290);
 print OUT "TOTAL_RBS\t$total_rbs\n";
 print OUT "TOTAL_READS_IN_RBS\t$total_reads\n";
+print OUT "STRAND_DROPOUT_IN_DEDUP\t$strand_dropout\n";
+print OUT "Kinda_OK_RBS(1+1)\t$kinda_ok_rbs\n";
 print OUT "OK_RBS(2+2)\t$ok_rbs\n";
 print OUT "READS_PER_RB\t$reads_per_rb\n";
 print OUT "F-EFF\t$f_eff\n";
