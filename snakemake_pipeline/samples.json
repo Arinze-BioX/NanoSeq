@@ -1,52 +1,22 @@
 {
-    "nanoseq_IP_OPT2": {
-        "AF1_22TG5HLT4_L2": {
-            "R1": ["/gpfs/data/petljaklab/arinze/IP_nanoseq2_042025/data/fastqs/nanoseq_IP_OPT2-AF1_22TG5HLT4_L2_1.fq.gz"],
-            "R2": ["/gpfs/data/petljaklab/arinze/IP_nanoseq2_042025/data/fastqs/nanoseq_IP_OPT2-AF1_22TG5HLT4_L2_2.fq.gz"]
+    "sample1": {
+        "Lane1": {
+            "R1": ["path/to/sample1_lane1_R1.fastq.gz"],
+            "R2": ["path/to/sample1_lane1_R2.fastq.gz"]
         },
-        "AF1_22THFJLT4_L4": {
-            "R1": ["/gpfs/data/petljaklab/arinze/IP_nanoseq2_042025/data/fastqs/nanoseq_IP_OPT2-AF1_22THFJLT4_L4_1.fq.gz"],
-            "R2": ["/gpfs/data/petljaklab/arinze/IP_nanoseq2_042025/data/fastqs/nanoseq_IP_OPT2-AF1_22THFJLT4_L4_2.fq.gz"]
+        "Lane2": {
+            "R1": ["path/to/sample1_lane2_R1.fastq.gz"],
+            "R2": ["path/to/sample1_lane2_R2.fastq.gz"]
+        }
+    },
+    "sample2": {
+        "Lane1": {
+            "R1": ["path/to/sample2_lane1_R1.fastq.gz"],
+            "R2": ["path/to/sample2_lane1_R2.fastq.gz"]
         },
-        "AF1_22THGGLT4_L2": {
-            "R1": ["/gpfs/data/petljaklab/arinze/IP_nanoseq2_042025/data/fastqs/nanoseq_IP_OPT2-AF1_22THGGLT4_L2_1.fq.gz"],
-            "R2": ["/gpfs/data/petljaklab/arinze/IP_nanoseq2_042025/data/fastqs/nanoseq_IP_OPT2-AF1_22THGGLT4_L2_2.fq.gz"]
-        },
-        "AF1_22THHGLT4_L5": {
-            "R1": ["/gpfs/data/petljaklab/arinze/IP_nanoseq2_042025/data/fastqs/nanoseq_IP_OPT2-AF1_22THHGLT4_L5_1.fq.gz"],
-            "R2": ["/gpfs/data/petljaklab/arinze/IP_nanoseq2_042025/data/fastqs/nanoseq_IP_OPT2-AF1_22THHGLT4_L5_2.fq.gz"]
-        },
-        "AF2_22TG5HLT4_L2": {
-            "R1": ["/gpfs/data/petljaklab/arinze/IP_nanoseq2_042025/data/fastqs/nanoseq_IP_OPT2-AF2_22TG5HLT4_L2_1.fq.gz"],
-            "R2": ["/gpfs/data/petljaklab/arinze/IP_nanoseq2_042025/data/fastqs/nanoseq_IP_OPT2-AF2_22TG5HLT4_L2_2.fq.gz"]
-        },
-        "AF2_22THFJLT4_L4": {
-            "R1": ["/gpfs/data/petljaklab/arinze/IP_nanoseq2_042025/data/fastqs/nanoseq_IP_OPT2-AF2_22THFJLT4_L4_1.fq.gz"],
-            "R2": ["/gpfs/data/petljaklab/arinze/IP_nanoseq2_042025/data/fastqs/nanoseq_IP_OPT2-AF2_22THFJLT4_L4_2.fq.gz"]
-        },
-        "AF2_22THGGLT4_L2": {
-            "R1": ["/gpfs/data/petljaklab/arinze/IP_nanoseq2_042025/data/fastqs/nanoseq_IP_OPT2-AF2_22THGGLT4_L2_1.fq.gz"],
-            "R2": ["/gpfs/data/petljaklab/arinze/IP_nanoseq2_042025/data/fastqs/nanoseq_IP_OPT2-AF2_22THGGLT4_L2_2.fq.gz"]
-        },
-        "AF2_22THHGLT4_L5": {
-            "R1": ["/gpfs/data/petljaklab/arinze/IP_nanoseq2_042025/data/fastqs/nanoseq_IP_OPT2-AF2_22THHGLT4_L5_1.fq.gz"],
-            "R2": ["/gpfs/data/petljaklab/arinze/IP_nanoseq2_042025/data/fastqs/nanoseq_IP_OPT2-AF2_22THHGLT4_L5_2.fq.gz"]
-        },
-        "AF4_22TG5HLT4_L2": {
-            "R1": ["/gpfs/data/petljaklab/arinze/IP_nanoseq2_042025/data/fastqs/nanoseq_IP_OPT2-AF4_22TG5HLT4_L2_1.fq.gz"],
-            "R2": ["/gpfs/data/petljaklab/arinze/IP_nanoseq2_042025/data/fastqs/nanoseq_IP_OPT2-AF4_22TG5HLT4_L2_2.fq.gz"]
-        },
-        "AF4_22THFJLT4_L4": {
-            "R1": ["/gpfs/data/petljaklab/arinze/IP_nanoseq2_042025/data/fastqs/nanoseq_IP_OPT2-AF4_22THFJLT4_L4_1.fq.gz"],
-            "R2": ["/gpfs/data/petljaklab/arinze/IP_nanoseq2_042025/data/fastqs/nanoseq_IP_OPT2-AF4_22THFJLT4_L4_2.fq.gz"]
-        },
-        "AF4_22THGGLT4_L2": {
-            "R1": ["/gpfs/data/petljaklab/arinze/IP_nanoseq2_042025/data/fastqs/nanoseq_IP_OPT2-AF4_22THGGLT4_L2_1.fq.gz"],
-            "R2": ["/gpfs/data/petljaklab/arinze/IP_nanoseq2_042025/data/fastqs/nanoseq_IP_OPT2-AF4_22THGGLT4_L2_2.fq.gz"]
-        },
-        "AF4_22THHGLT4_L5": {
-            "R1": ["/gpfs/data/petljaklab/arinze/IP_nanoseq2_042025/data/fastqs/nanoseq_IP_OPT2-AF4_22THHGLT4_L5_1.fq.gz"],
-            "R2": ["/gpfs/data/petljaklab/arinze/IP_nanoseq2_042025/data/fastqs/nanoseq_IP_OPT2-AF4_22THHGLT4_L5_2.fq.gz"]
+        "Lane2": {
+            "R1": ["path/to/sample2_lane2_R1.fastq.gz"],
+            "R2": ["path/to/sample2_lane2_R2.fastq.gz"]
         }
     }
 }
