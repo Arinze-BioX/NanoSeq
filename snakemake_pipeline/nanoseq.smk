@@ -19,7 +19,11 @@ GERMLINE_VCF    = config['GERMLINE_VCF']
 CELL_LINE_GENOTYPE_REGIONS = config['CELL_LINE_GENOTYPE_REGIONS']
 VERIFYBAMID_HOME    = config['VERIFYBAMID_HOME']
 NORM_FASTQ_FOLDER          = config['NORM_FASTQ_FOLDER']
-MATCHED_FASTQ     = config['MATCHED_FASTQ']
+MATCHED_FASTQ_R1     = config['MATCHED_FASTQ_R1']
+MATCHED_FASTQ_R2     = config['MATCHED_FASTQ_R2']
+BARCODE_LENGTH    = config['BARCODE_LENGTH']
+EXTRACT_SKIP      = config['EXTRACT_SKIP']
+READ_LENGTH      = config['READ_LENGTH']
 
 TARGETS = []
 post  = expand("{WORKING_FOLDER}/{sample}_nanoseq_post.txt", sample = SAMPLES, WORKING_FOLDER = WORKING_FOLDER)
@@ -55,7 +59,7 @@ rule extract_tags:
     singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {CODE_HOME} \
     --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" \
     nanoseq_1.1.0.sif /bin/bash -c "python {CODE_HOME}/python/extract_tags.py -a {input.r1} \
-    -b {input.r2} -c {output.r1_trimmed} -d {output.r2_trimmed} -m 3 -s 2 -l 150 1> {log.stdout} 2> {log.stderr}"
+    -b {input.r2} -c {output.r1_trimmed} -d {output.r2_trimmed} -m {BARCODE_LENGTH} -s {EXTRACT_SKIP} -l {READ_LENGTH} 1> {log.stdout} 2> {log.stderr}"
 """
 
 rule align_tumor:
@@ -83,8 +87,8 @@ rule align_tumor:
 
 rule align_normal:
     input:
-        norm_r1 = f"{NORM_FASTQ_FOLDER}/{MATCHED_FASTQ}_1.fq.gz",
-        norm_r2 = f"{NORM_FASTQ_FOLDER}/{MATCHED_FASTQ}_1.fq.gz"
+        norm_r1 = f"{NORM_FASTQ_FOLDER}/{MATCHED_FASTQ_R1}",
+        norm_r2 = f"{NORM_FASTQ_FOLDER}/{MATCHED_FASTQ_R2}"
     output:
         bam=f"{WORKING_FOLDER}/data/align_norm/{{sample}}.bam"
     threads: 16
@@ -250,9 +254,9 @@ rule analyse_efficiency:
 
 rule nanoseq_cov:
     input:
-        dedup_bam=f"{WORKING_FOLDER}/data/dedup/{{sample}}.bam",
+        normal_bam=f"{WORKING_FOLDER}/data/align_norm/{{sample}}.bam",
         merged_bam=f"{WORKING_FOLDER}/data/filtered/{{sample}}_merged.bam",
-        dedup_bai=f"{WORKING_FOLDER}/data/dedup/{{sample}}.bam.bai",
+        normal_bai=f"{WORKING_FOLDER}/data/align_norm/{{sample}}.bam.bai",
         merged_bai=f"{WORKING_FOLDER}/data/filtered/{{sample}}_merged.bam.bai"
     output:
         touch(f"{WORKING_FOLDER}/{{sample}}_nanoseq_cov.txt")
@@ -262,7 +266,7 @@ rule nanoseq_cov:
     shell: """
     mkdir -p {WORKING_FOLDER}/{wildcards.sample} # Create sample-specific output dir if needed by script
     singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {CODE_HOME} -B {BWA_FOLDER} \
-    --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.1.0.sif /bin/bash -c "python {CODE_HOME}/python/runNanoSeq.py --out {WORKING_FOLDER}/{wildcards.sample} -t {threads} -A {input.dedup_bam} -B {input.merged_bam} -R {BWA_INDEX} cov -Q 0 --exclude 'MT,GL%%,NC_%,hs37d5' 2>{log}"
+    --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.1.0.sif /bin/bash -c "python {CODE_HOME}/python/runNanoSeq.py --out {WORKING_FOLDER}/{wildcards.sample} -t {threads} -A {input.normal_bam} -B {input.merged_bam} -R {BWA_INDEX} cov -Q 0 --exclude 'chrM,MT,GL%%,NC_%,hs37d5' 2>{log}"
     """
 
 rule nanoseq_partition:
@@ -374,7 +378,8 @@ rule nanoseq_plot_variant_qc:
 
 rule verify_cell_origin:
     input:
-        bam=f"{WORKING_FOLDER}/data/filtered/{{sample}}_merged.bam"
+        bam=f"{WORKING_FOLDER}/data/filtered/{{sample}}_merged.bam",
+        bai=f"{WORKING_FOLDER}/data/filtered/{{sample}}_merged.bam.bai"
     output:
         touch(f"{WORKING_FOLDER}/{{sample}}_nanoseq_verify.txt")
     threads: 1
