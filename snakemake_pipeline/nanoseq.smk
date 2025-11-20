@@ -42,10 +42,55 @@ localrules: all
 rule all:
     input: TARGETS
 
-rule extract_tags:
+rule fastqc_raw:
     input:
         r1 = lambda wildcards: FILES[wildcards.sample][wildcards.lane]['R1'],
         r2 = lambda wildcards: FILES[wildcards.sample][wildcards.lane]['R2']
+    output:
+        # Outputting to 'trimmed' directory
+        fastqc_done=f"{WORKING_FOLDER}/data/fastq_qc/{{sample}}-{{lane}}_fastqc_done.txt"
+    threads: 1
+    message: "Fastqc for raw reads"
+    log:
+        stdout=f"{WORKING_FOLDER}/00_log/{{sample}}-{{lane}}_fastqc.stdOut",
+        stderr=f"{WORKING_FOLDER}/00_log/{{sample}}-{{lane}}_fastqc.stderr",
+    shell: """
+    singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {CODE_HOME} \
+    --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" \
+    nanoseq_1.1.0.sif /bin/bash -c "fastqc -o {WORKING_FOLDER}/data/fastq_qc/ \
+    -t {threads} {input.r1} {input.r2} 1> {log.stdout} 2> {log.stderr} && \
+    touch {output.fastqc_done}"
+"""
+
+
+rule fastp_trim:
+    input:
+        r1 = lambda wildcards: FILES[wildcards.sample][wildcards.lane]['R1'],
+        r2 = lambda wildcards: FILES[wildcards.sample][wildcards.lane]['R2'],
+        f"{WORKING_FOLDER}/data/fastqc/{{sample}}-{{lane}}_fastqc_done.txt"
+    output:
+        # Outputting to 'trimmed' directory
+        r1_trimmed=f"{WORKING_FOLDER}/data/trimmed/{{sample}}-{{lane}}_fastp_1.fq.gz",
+        r2_trimmed=f"{WORKING_FOLDER}/data/trimmed/{{sample}}-{{lane}}_fastp_2.fq.gz",
+        report=f"{WORKING_FOLDER}/data/fastq_qc/{{sample}}-{{lane}}_fastp_report.html",
+        fastp_json=f"{WORKING_FOLDER}/data/fastq_qc/{{sample}}-{{lane}}_fastp_report.json"
+    threads: 1
+    message: "Fastp QC run and trimming for raw reads"
+    log:
+        stdout=f"{WORKING_FOLDER}/00_log/{{sample}}-{{lane}}_stdOut.fastp",
+        stderr=f"{WORKING_FOLDER}/00_log/{{sample}}-{{lane}}_error.fastp"
+    shell: """
+    singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {CODE_HOME} \
+    --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" \
+    nanoseq_1.1.0.sif /bin/bash -c "fastp -i {input.r1} -I {input.r2} -o {output.r1_trimmed} \
+    -O {output.r2_trimmed} -h {output.report} -j {output.fastp_json} 1> {log.stdout} 2> {log.stderr}"
+"""
+
+
+rule extract_tags:
+    input:
+        r1 = f"{WORKING_FOLDER}/data/trimmed/{{sample}}-{{lane}}_fastp_1.fq.gz",
+        r2 = f"{WORKING_FOLDER}/data/trimmed/{{sample}}-{{lane}}_fastp_2.fq.gz"
     output:
         # Outputting to 'trimmed' directory
         r1_trimmed=f"{WORKING_FOLDER}/data/trimmed/{{sample}}-{{lane}}_1.fq.gz",
