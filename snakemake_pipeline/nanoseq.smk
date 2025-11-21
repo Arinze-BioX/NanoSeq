@@ -42,55 +42,38 @@ localrules: all
 rule all:
     input: TARGETS
 
-rule fastqc_raw:
+rule fastq_qc:
     input:
         r1 = lambda wildcards: FILES[wildcards.sample][wildcards.lane]['R1'],
         r2 = lambda wildcards: FILES[wildcards.sample][wildcards.lane]['R2']
     output:
         # Outputting to 'trimmed' directory
-        fastqc_done=f"{WORKING_FOLDER}/data/fastq_qc/{{sample}}-{{lane}}_fastqc_done.txt"
+        r1_trimmed=f"{WORKING_FOLDER}/data/fastp/{{sample}}-{{lane}}_1.fq.gz",
+        r2_trimmed=f"{WORKING_FOLDER}/data/fastp/{{sample}}-{{lane}}_2.fq.gz",
+        report=f"{WORKING_FOLDER}/data/fastq_qc/{{sample}}-{{lane}}_fastp_report.html",
+        fastp_json=f"{WORKING_FOLDER}/data/fastq_qc/{{sample}}-{{lane}}_fastp_report.json"
     threads: 1
-    message: "Fastqc for raw reads"
+    message: "Fastqc for raw nanoseq reads"
     log:
-        stdout=f"{WORKING_FOLDER}/00_log/{{sample}}-{{lane}}_fastqc.stdOut",
-        stderr=f"{WORKING_FOLDER}/00_log/{{sample}}-{{lane}}_fastqc.stderr",
+        stdout_fastqc=f"{WORKING_FOLDER}/00_log/{{sample}}-{{lane}}_fastqc.stdOut",
+        stderr_fastqc=f"{WORKING_FOLDER}/00_log/{{sample}}-{{lane}}_fastqc.stderr",
+        stdout_fastp=f"{WORKING_FOLDER}/00_log/{{sample}}-{{lane}}_stdOut.fastp",
+        stderr_fastp=f"{WORKING_FOLDER}/00_log/{{sample}}-{{lane}}_error.fastp"
     shell: """
     singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {CODE_HOME} \
     --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" \
     nanoseq_1.1.0.sif /bin/bash -c "fastqc -o {WORKING_FOLDER}/data/fastq_qc/ \
-    -t {threads} {input.r1} {input.r2} 1> {log.stdout} 2> {log.stderr} && \
-    touch {output.fastqc_done}"
-"""
-
-
-rule fastp_trim:
-    input:
-        r1 = lambda wildcards: FILES[wildcards.sample][wildcards.lane]['R1'],
-        r2 = lambda wildcards: FILES[wildcards.sample][wildcards.lane]['R2'],
-        f"{WORKING_FOLDER}/data/fastqc/{{sample}}-{{lane}}_fastqc_done.txt"
-    output:
-        # Outputting to 'trimmed' directory
-        r1_trimmed=f"{WORKING_FOLDER}/data/trimmed/{{sample}}-{{lane}}_fastp_1.fq.gz",
-        r2_trimmed=f"{WORKING_FOLDER}/data/trimmed/{{sample}}-{{lane}}_fastp_2.fq.gz",
-        report=f"{WORKING_FOLDER}/data/fastq_qc/{{sample}}-{{lane}}_fastp_report.html",
-        fastp_json=f"{WORKING_FOLDER}/data/fastq_qc/{{sample}}-{{lane}}_fastp_report.json"
-    threads: 1
-    message: "Fastp QC run and trimming for raw reads"
-    log:
-        stdout=f"{WORKING_FOLDER}/00_log/{{sample}}-{{lane}}_stdOut.fastp",
-        stderr=f"{WORKING_FOLDER}/00_log/{{sample}}-{{lane}}_error.fastp"
-    shell: """
-    singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {CODE_HOME} \
-    --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" \
-    nanoseq_1.1.0.sif /bin/bash -c "fastp -i {input.r1} -I {input.r2} -o {output.r1_trimmed} \
-    -O {output.r2_trimmed} -h {output.report} -j {output.fastp_json} 1> {log.stdout} 2> {log.stderr}"
+    -t {threads} {input.r1} {input.r2} 1> {log.stdout_fastqc} 2> {log.stderr_fastqc}; \
+    fastp -i {input.r1} -I {input.r2} -o {output.r1_trimmed} \
+    -O {output.r2_trimmed} -h {output.report} -j {output.fastp_json} \
+    1> {log.stdout_fastp} 2> {log.stderr_fastp}"
 """
 
 
 rule extract_tags:
     input:
-        r1 = f"{WORKING_FOLDER}/data/trimmed/{{sample}}-{{lane}}_fastp_1.fq.gz",
-        r2 = f"{WORKING_FOLDER}/data/trimmed/{{sample}}-{{lane}}_fastp_2.fq.gz"
+        r1 = f"{WORKING_FOLDER}/data/fastp/{{sample}}-{{lane}}_1.fq.gz",
+        r2 = f"{WORKING_FOLDER}/data/fastp/{{sample}}-{{lane}}_2.fq.gz"
     output:
         # Outputting to 'trimmed' directory
         r1_trimmed=f"{WORKING_FOLDER}/data/trimmed/{{sample}}-{{lane}}_1.fq.gz",
@@ -130,18 +113,49 @@ rule align_tumor:
 """
 # Note: Added {{lane}} to PU field in RG string for better distinction if needed later
 
-rule align_normal:
+
+rule normal_fastq_qc:
     input:
         norm_r1 = f"{NORM_FASTQ_FOLDER}/{MATCHED_FASTQ_R1}",
         norm_r2 = f"{NORM_FASTQ_FOLDER}/{MATCHED_FASTQ_R2}"
     output:
-        bam=f"{WORKING_FOLDER}/data/align_norm/{{sample}}.bam"
+        r1_trimmed=f"{WORKING_FOLDER}/data/norm_fastq_trimmed/matched_normal_1.fq.gz",
+        r2_trimmed=f"{WORKING_FOLDER}/data/norm_fastq_trimmed/matched_normal_2.fq.gz",
+        report=f"{WORKING_FOLDER}/data/norm_fastq_qc/matched_normal_fastp_report.html",
+        fastp_json=f"{WORKING_FOLDER}/data/norm_fastq_qc/matched_normal_fastp_report.json"
+    threads: 16
+    resources:
+        mem_mb=40000,
+        slurm_partition="petljaklab"
+    message: "Fastq QC for matched normal sample"
+    log:
+        stdout_fastqc=f"{WORKING_FOLDER}/00_log/matched_normal_fastqc.stdOut",
+        stderr_fastqc=f"{WORKING_FOLDER}/00_log/matched_normal_fastqc.stderr",
+        stdout_fastp=f"{WORKING_FOLDER}/00_log/matched_normal_fastqc.fastp",
+        stderr_fastp=f"{WORKING_FOLDER}/00_log/matched_normal_fastqc.fastp"
+    shell: """
+    singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {CODE_HOME} \
+    --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" \
+    nanoseq_1.1.0.sif /bin/bash -c "fastqc -o {WORKING_FOLDER}/data/norm_fastq_qc/ \
+    -t {threads} {input.norm_r1} {input.norm_r2} 1> {log.stdout_fastqc} 2> {log.stderr_fastqc}; \
+    fastp -i {input.norm_r1} -I {input.norm_r2} -o {output.r1_trimmed} \
+    -O {output.r2_trimmed} -h {output.report} -j {output.fastp_json} \
+    1> {log.stdout_fastp} 2> {log.stderr_fastp}"
+"""
+
+
+rule align_normal:
+    input:
+        norm_r1 = f"{WORKING_FOLDER}/data/norm_fastq_trimmed/matched_normal_1.fq.gz",
+        norm_r2 = f"{WORKING_FOLDER}/data/norm_fastq_trimmed/matched_normal_2.fq.gz",
+    output:
+        bam=f"{WORKING_FOLDER}/data/align_norm/matched_normal.bam"
     threads: 16
     resources:
         mem_mb=40000,
         slurm_partition="petljaklab"
     message: "Align trimmed reads in normal samples: {input} to the genome using {threads} threads"
-    log: f"{WORKING_FOLDER}/00_log/{{sample}}_norm.bwa"
+    log: f"{WORKING_FOLDER}/00_log/matched_norm.bwa"
     shell: """
     singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {BWA_FOLDER} -B {NORM_FASTQ_FOLDER} \
     --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.1.0.sif /bin/bash -c "bwa mem \
@@ -152,11 +166,11 @@ rule align_normal:
 
 rule index_normal_bam:
     input:
-        bam=f"{WORKING_FOLDER}/data/align_norm/{{sample}}.bam"
+        bam=f"{WORKING_FOLDER}/data/align_norm/matched_normal.bam"
     output:
-        bai=f"{WORKING_FOLDER}/data/align_norm/{{sample}}.bam.bai"
+        bai=f"{WORKING_FOLDER}/data/align_norm/matched_normal.bam.bai"
     threads: 8
-    log: f"{WORKING_FOLDER}/00_log/{{sample}}.samtoolsNormIndex"
+    log: f"{WORKING_FOLDER}/00_log/matched_norm.samtoolsNormIndex"
     shell: """
     singularity exec -B {FASTQ_FOLDER} -B {WORKING_FOLDER} -B {NORM_FASTQ_FOLDER} \
     --env "PATH=/home/ubuntu/miniforge3/bin:/opt/wtsi-cgp/bin:${{PATH}}" nanoseq_1.1.0.sif /bin/bash -c "samtools index -@ {threads} {input.bam} -o {output.bai} 2> {log}"
@@ -229,7 +243,7 @@ def get_lane_bams(wildcards):
     )
 
 
-rule merge_bams:
+rule merge_sample_lanes:
     input:
         bams=get_lane_bams
     output:
@@ -299,9 +313,9 @@ rule analyse_efficiency:
 
 rule nanoseq_cov:
     input:
-        normal_bam=f"{WORKING_FOLDER}/data/align_norm/{{sample}}.bam",
+        normal_bam=f"{WORKING_FOLDER}/data/align_norm/matched_normal.bam",
         merged_bam=f"{WORKING_FOLDER}/data/filtered/{{sample}}_merged.bam",
-        normal_bai=f"{WORKING_FOLDER}/data/align_norm/{{sample}}.bam.bai",
+        normal_bai=f"{WORKING_FOLDER}/data/align_norm/matched_normal.bam.bai",
         merged_bai=f"{WORKING_FOLDER}/data/filtered/{{sample}}_merged.bam.bai"
     output:
         touch(f"{WORKING_FOLDER}/{{sample}}_nanoseq_cov.txt")
@@ -316,10 +330,10 @@ rule nanoseq_cov:
 
 rule nanoseq_partition:
     input:
-        norm_bam=f"{WORKING_FOLDER}/data/align_norm/{{sample}}.bam",
+        norm_bam=f"{WORKING_FOLDER}/data/align_norm/matched_normal.bam",
         tumor_bam=f"{WORKING_FOLDER}/data/filtered/{{sample}}_merged.bam", # Use the merged tumor BAM
         cov_trigger=f"{WORKING_FOLDER}/{{sample}}_nanoseq_cov.txt", # Trigger dependency
-        norm_bai=f"{WORKING_FOLDER}/data/align_norm/{{sample}}.bam.bai",
+        norm_bai=f"{WORKING_FOLDER}/data/align_norm/matched_normal.bam.bai",
         tumor_bai=f"{WORKING_FOLDER}/data/filtered/{{sample}}_merged.bam.bai"
     output:
         touch(f"{WORKING_FOLDER}/{{sample}}_nanoseq_part.txt")
@@ -333,10 +347,10 @@ rule nanoseq_partition:
 
 rule nanoseq_dsa:
     input:
-        norm_bam=f"{WORKING_FOLDER}/data/align_norm/{{sample}}.bam",
+        norm_bam=f"{WORKING_FOLDER}/data/align_norm/matched_normal.bam",
         tumor_bam=f"{WORKING_FOLDER}/data/filtered/{{sample}}_merged.bam", # Use the merged tumor BAM
         part_trigger=f"{WORKING_FOLDER}/{{sample}}_nanoseq_part.txt", # Trigger dependency
-        norm_bai=f"{WORKING_FOLDER}/data/align_norm/{{sample}}.bam.bai",
+        norm_bai=f"{WORKING_FOLDER}/data/align_norm/matched_normal.bam.bai",
         tumor_bai=f"{WORKING_FOLDER}/data/filtered/{{sample}}_merged.bam.bai"
     output:
         touch(f"{WORKING_FOLDER}/{{sample}}_nanoseq_dsa.txt")
@@ -350,10 +364,10 @@ rule nanoseq_dsa:
 
 rule nanoseq_var:
     input:
-        norm_bam=f"{WORKING_FOLDER}/data/align_norm/{{sample}}.bam",
+        norm_bam=f"{WORKING_FOLDER}/data/align_norm/matched_normal.bam",
         tumor_bam=f"{WORKING_FOLDER}/data/filtered/{{sample}}_merged.bam", # Use the merged tumor BAM
         dsa_trigger=f"{WORKING_FOLDER}/{{sample}}_nanoseq_dsa.txt", # Trigger dependency
-        norm_bai=f"{WORKING_FOLDER}/data/align_norm/{{sample}}.bam.bai",
+        norm_bai=f"{WORKING_FOLDER}/data/align_norm/matched_normal.bam.bai",
         tumor_bai=f"{WORKING_FOLDER}/data/filtered/{{sample}}_merged.bam.bai"
     output:
         touch(f"{WORKING_FOLDER}/{{sample}}_nanoseq_var.txt")
@@ -368,10 +382,10 @@ rule nanoseq_var:
 
 rule nanoseq_indel:
     input:
-        norm_bam=f"{WORKING_FOLDER}/data/align_norm/{{sample}}.bam",
+        norm_bam=f"{WORKING_FOLDER}/data/align_norm/matched_normal.bam",
         tumor_bam=f"{WORKING_FOLDER}/data/filtered/{{sample}}_merged.bam", # Use the merged tumor BAM
         dsa_trigger=f"{WORKING_FOLDER}/{{sample}}_nanoseq_dsa.txt", # Trigger dependency
-        norm_bai=f"{WORKING_FOLDER}/data/align_norm/{{sample}}.bam.bai",
+        norm_bai=f"{WORKING_FOLDER}/data/align_norm/matched_normal.bam.bai",
         tumor_bai=f"{WORKING_FOLDER}/data/filtered/{{sample}}_merged.bam.bai"
     output:
         touch(f"{WORKING_FOLDER}/{{sample}}_nanoseq_indel.txt")
@@ -386,7 +400,7 @@ rule nanoseq_indel:
 
 rule nanoseq_post:
     input:
-        norm_bam=f"{WORKING_FOLDER}/data/align_norm/{{sample}}.bam",
+        norm_bam=f"{WORKING_FOLDER}/data/align_norm/matched_normal.bam",
         tumor_bam=f"{WORKING_FOLDER}/data/filtered/{{sample}}_merged.bam", # Use the merged tumor BAM
         # Trigger dependencies from previous steps
         indel_trigger=f"{WORKING_FOLDER}/{{sample}}_nanoseq_indel.txt",
